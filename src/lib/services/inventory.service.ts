@@ -65,7 +65,7 @@ export const inventoryService = {
         notes: params.notes,
         createdBy: params.createdBy,
       })
-    } catch (err) {
+    } catch (err: any) {
       console.error('[stockIn] createMovement FAILED:', err)
       console.error('[stockIn] error message:', err?.message)
       console.error('[stockIn] error code:', err?.code)
@@ -81,18 +81,11 @@ export const inventoryService = {
         params.productId,
         newStock,
       )
-    } catch (err) {
+    } catch (err: any) {
       console.error('[stockIn] upsertBalance FAILED:', err)
       throw err
     }
     console.log('[stockIn] Step 6: done')
-
-    await inventoryRepository.upsertBalance(
-      params.tenantId,
-      params.warehouseId,
-      params.productId,
-      newStock,
-    )
 
     await createAuditLog({
       tenantId: params.tenantId,
