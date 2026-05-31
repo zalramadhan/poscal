@@ -51,14 +51,15 @@ export function validateSchema<T>(schema: ZodType<T, any, any>, data: unknown): 
 export function withErrorHandler(handler: Function) {
   return async (...args: unknown[]) => {
     try {
-      console.log('[withErrorHandler] calling handler')
+      console.log('[withErrorHandler] calling handler at', new Date().toISOString())
       const result = await handler(...args)
-      console.log('[withErrorHandler] handler returned')
+      console.log('[withErrorHandler] handler returned successfully')
       return result
     } catch (error: any) {
-      console.error('[withErrorHandler] error:', error?.message || error)
+      console.error('[withErrorHandler] CAUGHT ERROR:', error?.message || error)
       console.error('[withErrorHandler] error type:', error?.constructor?.name)
       console.error('[withErrorHandler] error stack:', error?.stack)
+      console.error('[withErrorHandler] full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)))
       if (error?.validation) {
         return errorResponse(error.message, 422, error.errors)
       }
