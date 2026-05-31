@@ -1,16 +1,21 @@
-import { PrismaClient } from '../src/lib/prisma'
+import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
 
-const prisma = new PrismaClient()
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL!,
+})
+
+const prisma = new PrismaClient({ adapter })
 
 async function main() {
   console.log('Seeding database...')
 
-  // Create default tenant
+  // Create default tenant with ID 'default' to match getTenantId fallback
   const tenant = await prisma.tenant.upsert({
     where: { slug: 'default' },
     update: {},
     create: {
-      id: 'default-tenant',
+      id: 'default',
       name: 'Default Tenant',
       slug: 'default',
       email: 'admin@poscal.com',
