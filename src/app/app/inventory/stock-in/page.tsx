@@ -10,8 +10,36 @@ import { ArrowLeft, Plus, Trash2, Save } from 'lucide-react'
 import Link from 'next/link'
 
 export default function StockInPage() {
+  const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
+  const [warehouses, setWarehouses] = React.useState<Array<{id: string, name: string}>>([])
+  const [products, setProducts] = React.useState<Array<{id: string, name: string}>>([])
+  const [warehouseId, setWarehouseId] = React.useState('default-warehouse')
   const [items, setItems] = React.useState([{ productId: '', quantity: '', notes: '' }])
-  const [warehouseId, setWarehouseId] = React.useState('')
+
+  React.useEffect(() => {
+    fetchData()
+  }, [])
+
+  async function fetchData() {
+    try {
+      const [whRes, prodRes] = await Promise.all([
+        fetch('/api/v1/warehouses'),
+        fetch('/api/v1/products'),
+      ])
+
+      if (whRes.ok) {
+        const whData = await whRes.json()
+        setWarehouses(whData.data || [])
+      }
+      if (prodRes.ok) {
+        const prodData = await prodRes.json()
+        setProducts(prodData.data || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch data:', err)
+    }
+  }
 
   function addItem() {
     setItems([...items, { productId: '', quantity: '', notes: '' }])
@@ -25,6 +53,47 @@ export default function StockInPage() {
     const newItems = [...items]
     newItems[index] = { ...newItems[index], [field]: value }
     setItems(newItems)
+  }
+
+  async function handleSubmit() {
+    if (!warehouseId || items.length === 0) {
+      setError('Please fill in all fields')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      for (const item of items) {
+        if (!item.productId || !item.quantity) continue
+
+        const res = await fetch('/api/v1/inventory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'STOCK_IN',
+            warehouseId,
+            productId: item.productId,
+            quantity: Number(item.quantity),
+            notes: item.notes,
+          }),
+        })
+
+        if (!res.ok) {
+          const json = await res.json()
+          throw new Error(json.message || 'Failed to save')
+        }
+      }
+
+      // Reset form
+      setItems([{ productId: '', quantity: '', notes: '' }])
+      alert('Stock in successful!')
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -44,14 +113,16 @@ export default function StockInPage() {
           <CardDescription>Record incoming stock to a warehouse</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {error && (
+            <div className="p-3 rounded-md bg-danger/10 border border-danger/20 text-sm text-danger">
+              {error}
+            </div>
+          )}
+
           <Select
             label="Warehouse"
             placeholder="Select destination warehouse"
-            options={[
-              { value: '1', label: 'Gudang Utama' },
-              { value: '2', label: 'Gudang Surabaya' },
-              { value: '3', label: 'Gudang Jakarta' },
-            ]}
+            options={warehouses.map(w => ({ value: w.id, label: w.name }))}
             value={warehouseId}
             onChange={(e) => setWarehouseId(e.target.value)}
           />
@@ -71,11 +142,7 @@ export default function StockInPage() {
                   <Select
                     label="Product"
                     placeholder="Select product"
-                    options={[
-                      { value: '1', label: 'Indomie Goreng' },
-                      { value: '2', label: 'Aqua 600ml' },
-                      { value: '3', label: 'Kopiko 78g' },
-                    ]}
+                    options={products.map(p => ({ value: p.id, label: p.name }))}
                     value={item.productId}
                     onChange={(e) => updateItem(index, 'productId', e.target.value)}
                   />
@@ -110,9 +177,9 @@ export default function StockInPage() {
             <Link href="/app/inventory">
               <Button variant="outline">Cancel</Button>
             </Link>
-            <Button>
+            <Button onClick={handleSubmit} disabled={loading}>
               <Save className="h-4 w-4 mr-2" />
-              Save Stock In
+              {loading ? 'Saving...' : 'Save Stock In'}
             </Button>
           </div>
         </CardContent>
