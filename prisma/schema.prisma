@@ -4,12 +4,13 @@
 // ──────────────────────────────────────────────────────────
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider        = "prisma-client-js"
+  previewFeatures = ["uuid"]
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ──────────────────────────────────────────────────────────
@@ -87,7 +88,7 @@ enum KitchenOrderStatus {
 // ──────────────────────────────────────────────────────────
 
 model Tenant {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   name      String
   slug      String   @unique
   email     String?
@@ -129,7 +130,7 @@ model Tenant {
 // ──────────────────────────────────────────────────────────
 
 model Role {
-  id          String   @id @default(cuid())
+  id          String   @id @default(uuid())
   tenantId    String
   name        String
   description String?
@@ -145,7 +146,7 @@ model Role {
 }
 
 model Permission {
-  id     String @id @default(cuid())
+  id     String @id @default(uuid())
   name   String
   module String
   action String
@@ -157,7 +158,7 @@ model Permission {
 }
 
 model RolePermission {
-  id           String @id @default(cuid())
+  id           String @id @default(uuid())
 
   roleId       String
   permissionId String
@@ -171,7 +172,7 @@ model RolePermission {
 }
 
 model User {
-  id           String     @id @default(cuid())
+  id           String     @id @default(uuid())
   tenantId     String
   roleId       String
   branchId     String?
@@ -197,7 +198,7 @@ model User {
 // ──────────────────────────────────────────────────────────
 
 model Branch {
-  id       String @id @default(cuid())
+  id       String @id @default(uuid())
   tenantId String
   name     String
   code     String
@@ -221,7 +222,7 @@ model Branch {
 }
 
 model Warehouse {
-  id       String @id @default(cuid())
+  id       String @id @default(uuid())
   tenantId String
   branchId String
   name     String
@@ -251,7 +252,7 @@ model Warehouse {
 // ──────────────────────────────────────────────────────────
 
 model Category {
-  id          String  @id @default(cuid())
+  id          String  @id @default(uuid())
   tenantId    String
   name        String
   description String?
@@ -266,7 +267,7 @@ model Category {
 }
 
 model Brand {
-  id          String  @id @default(cuid())
+  id          String  @id @default(uuid())
   tenantId    String
   name        String
   description String?
@@ -281,7 +282,7 @@ model Brand {
 }
 
 model Unit {
-  id        String @id @default(cuid())
+  id        String @id @default(uuid())
   tenantId  String
   name      String
   symbol    String
@@ -296,7 +297,7 @@ model Unit {
 }
 
 model Product {
-  id           String   @id @default(cuid())
+  id           String   @id @default(uuid())
   tenantId     String
   categoryId   String?
   brandId      String?
@@ -335,7 +336,7 @@ model Product {
 }
 
 model ProductImage {
-  id        String @id @default(cuid())
+  id        String @id @default(uuid())
 
   productId String
   product   Product @relation(fields: [productId], references: [id])
@@ -353,7 +354,7 @@ model ProductImage {
 // ──────────────────────────────────────────────────────────
 
 model Customer {
-  id        String  @id @default(cuid())
+  id        String  @id @default(uuid())
   tenantId  String
   name      String
   phone     String?
@@ -377,7 +378,7 @@ model Customer {
 }
 
 model Supplier {
-  id       String  @id @default(cuid())
+  id       String  @id @default(uuid())
   tenantId String
   name     String
   phone    String?
@@ -401,7 +402,7 @@ model Supplier {
 // ──────────────────────────────────────────────────────────
 
 model InventoryBalance {
-  id          String  @id @default(cuid())
+  id          String  @id @default(uuid())
   tenantId    String
   warehouseId String
   productId   String
@@ -419,7 +420,7 @@ model InventoryBalance {
 }
 
 model InventoryMovement {
-  id             String                @id @default(cuid())
+  id             String                @id @default(uuid())
   tenantId       String
   warehouseId    String
   productId      String
@@ -444,7 +445,7 @@ model InventoryMovement {
 }
 
 model StockOpname {
-  id          String            @id @default(cuid())
+  id          String            @id @default(uuid())
   tenantId    String
   warehouseId String
   status      StockOpnameStatus @default(DRAFT)
@@ -465,7 +466,7 @@ model StockOpname {
 }
 
 model StockOpnameItem {
-  id            String @id @default(cuid())
+  id            String @id @default(uuid())
 
   stockOpnameId String
   productId     String
@@ -488,7 +489,7 @@ model StockOpnameItem {
 // ──────────────────────────────────────────────────────────
 
 model PaymentMethod {
-  id        String  @id @default(cuid())
+  id        String  @id @default(uuid())
   tenantId  String
   name      String
   isActive  Boolean @default(true)
@@ -504,7 +505,7 @@ model PaymentMethod {
 }
 
 model Sale {
-  id            String     @id @default(cuid())
+  id            String     @id @default(uuid())
   tenantId      String
   branchId      String
   customerId    String?
@@ -533,7 +534,7 @@ model Sale {
 }
 
 model SaleItem {
-  id           String  @id @default(cuid())
+  id           String  @id @default(uuid())
   saleId       String
   productId    String
   quantity     Decimal @db.Decimal(18, 2)
@@ -551,7 +552,7 @@ model SaleItem {
 }
 
 model Payment {
-  id              String @id @default(cuid())
+  id              String @id @default(uuid())
   saleId          String
   paymentMethodId String
   amount          Decimal @db.Decimal(18, 2)
@@ -570,7 +571,7 @@ model Payment {
 // ──────────────────────────────────────────────────────────
 
 model PurchaseOrder {
-  id          String              @id @default(cuid())
+  id          String              @id @default(uuid())
   tenantId    String
   supplierId  String
   warehouseId String
@@ -596,7 +597,7 @@ model PurchaseOrder {
 }
 
 model PurchaseOrderItem {
-  id              String  @id @default(cuid())
+  id              String  @id @default(uuid())
   purchaseOrderId String
   productId       String
   quantity        Decimal @db.Decimal(18, 2)
@@ -617,7 +618,7 @@ model PurchaseOrderItem {
 // ──────────────────────────────────────────────────────────
 
 model StockTransfer {
-  id               String         @id @default(cuid())
+  id               String         @id @default(uuid())
   tenantId         String
   fromWarehouseId  String
   toWarehouseId    String
@@ -640,7 +641,7 @@ model StockTransfer {
 }
 
 model StockTransferItem {
-  id              String  @id @default(cuid())
+  id              String  @id @default(uuid())
   stockTransferId String
   productId       String
   quantity        Decimal @db.Decimal(18, 2)
@@ -659,7 +660,7 @@ model StockTransferItem {
 // ──────────────────────────────────────────────────────────
 
 model Income {
-  id          String   @id @default(cuid())
+  id          String   @id @default(uuid())
   tenantId    String
   branchId    String
   amount      Decimal  @db.Decimal(18, 2)
@@ -677,7 +678,7 @@ model Income {
 }
 
 model Expense {
-  id          String   @id @default(cuid())
+  id          String   @id @default(uuid())
   tenantId    String
   branchId    String
   amount      Decimal  @db.Decimal(18, 2)
@@ -699,7 +700,7 @@ model Expense {
 // ──────────────────────────────────────────────────────────
 
 model Membership {
-  id                 String   @id @default(cuid())
+  id                 String   @id @default(uuid())
   tenantId           String
   name               String
   minimumPoints      Int
@@ -718,7 +719,7 @@ model Membership {
 // ──────────────────────────────────────────────────────────
 
 model FileUpload {
-  id         String @id @default(cuid())
+  id         String @id @default(uuid())
   tenantId   String
   fileName   String
   fileUrl    String
@@ -734,7 +735,7 @@ model FileUpload {
 }
 
 model SystemSetting {
-  id        String @id @default(cuid())
+  id        String @id @default(uuid())
   tenantId  String
   key       String
   value     String
@@ -749,7 +750,7 @@ model SystemSetting {
 }
 
 model AuditLog {
-  id        String  @id @default(cuid())
+  id        String  @id @default(uuid())
   tenantId  String
   userId    String
   entity    String
@@ -772,7 +773,7 @@ model AuditLog {
 // ──────────────────────────────────────────────────────────
 
 model RestaurantTable {
-  id        String                @id @default(cuid())
+  id        String                @id @default(uuid())
   tenantId  String
   branchId  String
   name      String
@@ -792,7 +793,7 @@ model RestaurantTable {
 }
 
 model MenuCategory {
-  id       String @id @default(cuid())
+  id       String @id @default(uuid())
   tenantId String
   name     String
 
@@ -807,7 +808,7 @@ model MenuCategory {
 }
 
 model Menu {
-  id             String  @id @default(cuid())
+  id             String  @id @default(uuid())
   tenantId       String
   menuCategoryId String
   name           String
@@ -829,7 +830,7 @@ model Menu {
 }
 
 model KitchenOrder {
-  id        String             @id @default(cuid())
+  id        String             @id @default(uuid())
   tenantId  String
   tableId   String?
   saleId    String?
@@ -847,7 +848,7 @@ model KitchenOrder {
 }
 
 model KitchenOrderItem {
-  id            String @id @default(cuid())
+  id            String @id @default(uuid())
   kitchenOrderId String
   menuId        String
   quantity      Int
