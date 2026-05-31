@@ -4,7 +4,6 @@
 // ──────────────────────────────────────────────────────
 
 import { prisma } from '@/lib/prisma'
-import { Prisma } from '../../../../generated/prisma/client'
 import { inventoryRepository } from '@/modules/inventory/repositories/inventory.repository'
 import { createAuditLog } from '@/lib/audit'
 import { InsufficientStockError } from '@/lib/errors'
@@ -49,7 +48,7 @@ export const inventoryService = {
           referenceId: params.referenceId,
           notes: params.notes,
           createdBy: params.createdBy,
-        } as Prisma.InventoryMovementUncheckedCreateInput,
+        },
       })
     } catch (error: any) {
       console.error('[stockIn] Failed to create movement:', error.message, error.code, error.meta)
