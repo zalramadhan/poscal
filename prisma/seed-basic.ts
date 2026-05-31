@@ -199,6 +199,21 @@ async function main() {
     })
   }
 
+  // Create inventory balances for products (initial stock)
+  const allProducts = await prisma.product.findMany({ where: { tenantId: tenant.id } })
+  for (const product of allProducts) {
+    await prisma.inventoryBalance.upsert({
+      where: { warehouseId_productId: { warehouseId: warehouse.id, productId: product.id } },
+      update: {},
+      create: {
+        tenantId: tenant.id,
+        warehouseId: warehouse.id,
+        productId: product.id,
+        quantity: 100, // Initial stock of 100 for each product
+      },
+    })
+  }
+
   console.log('Seeding completed!')
 }
 
