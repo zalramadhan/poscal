@@ -1,7 +1,7 @@
 {
   "framework": "nextjs",
-  "buildCommand": "npm install --legacy-peer-deps && npm run db:generate && npm run build",
-  "installCommand": "npm install --legacy-peer-deps",
+  "buildCommand": "npm run db:generate && npm run build",
+  "installCommand": "npm install",
   "devCommand": "npm run dev",
   "regions": ["sin1"]
 }
