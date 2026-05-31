@@ -14,7 +14,7 @@ export default function StockInPage() {
   const [error, setError] = React.useState<string | null>(null)
   const [warehouses, setWarehouses] = React.useState<Array<{id: string, name: string}>>([])
   const [products, setProducts] = React.useState<Array<{id: string, name: string}>>([])
-  const [warehouseId, setWarehouseId] = React.useState('default-warehouse')
+  const [warehouseId, setWarehouseId] = React.useState('')
   const [items, setItems] = React.useState([{ productId: '', quantity: '', notes: '' }])
 
   React.useEffect(() => {
@@ -31,6 +31,9 @@ export default function StockInPage() {
       if (whRes.ok) {
         const whData = await whRes.json()
         setWarehouses(whData.data || [])
+        if (whData.data?.length > 0) {
+          setWarehouseId(whData.data[0].id)
+        }
       }
       if (prodRes.ok) {
         const prodData = await prodRes.json()
@@ -68,11 +71,10 @@ export default function StockInPage() {
       for (const item of items) {
         if (!item.productId || !item.quantity) continue
 
-        const res = await fetch('/api/v1/inventory', {
+        const res = await fetch('/api/v1/inventory?action=stock-in', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            type: 'STOCK_IN',
             warehouseId,
             productId: item.productId,
             quantity: Number(item.quantity),
