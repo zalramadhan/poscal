@@ -31,9 +31,11 @@ export async function getUserId(request: NextRequest): Promise<string> {
 }
 
 export function validateSchema<T>(schema: ZodType<T, any, any>, data: unknown): T {
+  console.log('[validateSchema] data:', JSON.stringify(data))
   try {
     return schema.parse(data)
   } catch (error) {
+    console.error('[validateSchema] error:', error)
     if (error instanceof ZodError) {
       const errors: Record<string, string> = {}
       error.errors.forEach((e) => {
@@ -49,8 +51,14 @@ export function validateSchema<T>(schema: ZodType<T, any, any>, data: unknown): 
 export function withErrorHandler(handler: Function) {
   return async (...args: unknown[]) => {
     try {
-      return await handler(...args)
+      console.log('[withErrorHandler] calling handler')
+      const result = await handler(...args)
+      console.log('[withErrorHandler] handler returned')
+      return result
     } catch (error: any) {
+      console.error('[withErrorHandler] error:', error?.message || error)
+      console.error('[withErrorHandler] error type:', error?.constructor?.name)
+      console.error('[withErrorHandler] error stack:', error?.stack)
       if (error?.validation) {
         return errorResponse(error.message, 422, error.errors)
       }

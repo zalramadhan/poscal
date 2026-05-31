@@ -26,16 +26,21 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
 // Stock in
 export const POST = withErrorHandler(async (request: NextRequest) => {
   const tenantId = await getTenantId(request)
+  console.log('[POST /inventory] tenantId:', tenantId)
   const userId = request.headers.get('x-user-id') || 'system'
+  console.log('[POST /inventory] userId:', userId)
   const body = await parseBody(request)
+  console.log('[POST /inventory] body:', JSON.stringify(body))
 
   const url = new URL(request.url)
   const action = url.searchParams.get('action')
+  console.log('[POST /inventory] action:', action)
 
   if (action === 'stock-in') {
     const input = validateSchema(stockInSchema, body)
-    console.log('[stock-in] input:', input, 'tenantId:', tenantId)
+    console.log('[POST /inventory] validated input:', JSON.stringify(input))
     const movement = await inventoryService.stockIn({ ...input, tenantId, createdBy: userId })
+    console.log('[POST /inventory] movement created:', movement.id)
     return successResponse(movement, 'Stock in recorded', 201)
   }
 
