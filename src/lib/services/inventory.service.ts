@@ -35,7 +35,7 @@ export const inventoryService = {
 
     const result = await prisma.$queryRawUnsafe<any[]>(
       `INSERT INTO "public"."InventoryMovement" 
-        (tenantId, warehouseId, productId, movementType, quantity, previousStock, currentStock, referenceType, referenceId, notes, createdBy, "createdAt") 
+        ("tenantId", "warehouseId", "productId", "movementType", "quantity", "previousStock", "currentStock", "referenceType", "referenceId", "notes", "createdBy", "createdAt") 
        VALUES ($1, $2, $3, $4::inventory_movement_type, $5, $6, $7, $8, $9, $10, $11, NOW()) 
        RETURNING *`,
       params.tenantId,
