@@ -34,6 +34,7 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
 
   if (action === 'stock-in') {
     const input = validateSchema(stockInSchema, body)
+    console.log('[stock-in] input:', input, 'tenantId:', tenantId)
     const movement = await inventoryService.stockIn({ ...input, tenantId, createdBy: userId })
     return successResponse(movement, 'Stock in recorded', 201)
   }

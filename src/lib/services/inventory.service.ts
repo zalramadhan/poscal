@@ -30,8 +30,11 @@ export const inventoryService = {
     referenceId?: string
     createdBy: string
   }) {
+    console.log('[stockIn] params:', JSON.stringify(params))
     const previousStock = await this.getCurrentStock(params.warehouseId, params.productId)
+    console.log('[stockIn] previousStock:', previousStock)
     const newStock = previousStock + params.quantity
+    console.log('[stockIn] newStock:', newStock)
 
     const movement = await inventoryRepository.createMovement({
       tenantId: params.tenantId,
@@ -46,6 +49,7 @@ export const inventoryService = {
       notes: params.notes,
       createdBy: params.createdBy,
     })
+    console.log('[stockIn] movement created:', movement.id)
 
     await inventoryRepository.upsertBalance(
       params.tenantId,
