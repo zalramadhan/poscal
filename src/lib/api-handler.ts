@@ -31,11 +31,9 @@ export async function getUserId(request: NextRequest): Promise<string> {
 }
 
 export function validateSchema<T>(schema: ZodType<T, any, any>, data: unknown): T {
-  console.log('[validateSchema] data:', JSON.stringify(data))
   try {
     return schema.parse(data)
   } catch (error) {
-    console.error('[validateSchema] error:', error)
     if (error instanceof ZodError) {
       const errors: Record<string, string> = {}
       error.errors.forEach((e) => {
@@ -51,15 +49,8 @@ export function validateSchema<T>(schema: ZodType<T, any, any>, data: unknown): 
 export function withErrorHandler(handler: Function) {
   return async (...args: unknown[]) => {
     try {
-      console.log('[withErrorHandler] calling handler at', new Date().toISOString())
-      const result = await handler(...args)
-      console.log('[withErrorHandler] handler returned successfully')
-      return result
+      return await handler(...args)
     } catch (error: any) {
-      console.error('[withErrorHandler] CAUGHT ERROR:', error?.message || error)
-      console.error('[withErrorHandler] error type:', error?.constructor?.name)
-      console.error('[withErrorHandler] error stack:', error?.stack)
-      console.error('[withErrorHandler] full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)))
       if (error?.validation) {
         return errorResponse(error.message, 422, error.errors)
       }

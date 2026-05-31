@@ -23,27 +23,17 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
   return paginatedResponse(result.data, result.pagination)
 })
 
-// Stock in
 export const POST = withErrorHandler(async (request: NextRequest) => {
-  console.log('[POST /inventory] START')
   const tenantId = await getTenantId(request)
-  console.log('[POST /inventory] tenantId:', tenantId)
   const userId = request.headers.get('x-user-id') || 'system'
-  console.log('[POST /inventory] userId:', userId)
   const body = await parseBody(request)
-  console.log('[POST /inventory] body:', JSON.stringify(body))
 
   const url = new URL(request.url)
   const action = url.searchParams.get('action')
-  console.log('[POST /inventory] action:', action)
 
   if (action === 'stock-in') {
-    console.log('[POST /inventory] entering stock-in block')
     const input = validateSchema(stockInSchema, body)
-    console.log('[POST /inventory] validated input:', JSON.stringify(input))
-    console.log('[POST /inventory] calling inventoryService.stockIn...')
     const movement = await inventoryService.stockIn({ ...input, tenantId, createdBy: userId })
-    console.log('[POST /inventory] movement created:', movement.id)
     return successResponse(movement, 'Stock in recorded', 201)
   }
 

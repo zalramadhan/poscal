@@ -30,13 +30,10 @@ export const inventoryService = {
     referenceId?: string
     createdBy: string
   }) {
-    console.log('[stockIn] Step 1: start')
     const previousStock = await this.getCurrentStock(params.warehouseId, params.productId)
-    console.log('[stockIn] Step 2: previousStock =', previousStock)
     const newStock = previousStock + params.quantity
-    console.log('[stockIn] Step 3: newStock =', newStock)
 
-    console.log('[stockIn] Step 4: createMovement with:', {
+    const movement = await inventoryRepository.createMovement({
       tenantId: params.tenantId,
       warehouseId: params.warehouseId,
       productId: params.productId,
@@ -50,42 +47,12 @@ export const inventoryService = {
       createdBy: params.createdBy,
     })
 
-    let movement
-    try {
-      movement = await inventoryRepository.createMovement({
-        tenantId: params.tenantId,
-        warehouseId: params.warehouseId,
-        productId: params.productId,
-        movementType: 'PURCHASE',
-        quantity: params.quantity,
-        previousStock,
-        currentStock: newStock,
-        referenceType: params.referenceType,
-        referenceId: params.referenceId,
-        notes: params.notes,
-        createdBy: params.createdBy,
-      })
-    } catch (err: any) {
-      console.error('[stockIn] createMovement FAILED:', err)
-      console.error('[stockIn] error message:', err?.message)
-      console.error('[stockIn] error code:', err?.code)
-      console.error('[stockIn] error meta:', err?.meta)
-      throw err
-    }
-    console.log('[stockIn] Step 5: movement created, id =', movement.id)
-
-    try {
-      await inventoryRepository.upsertBalance(
-        params.tenantId,
-        params.warehouseId,
-        params.productId,
-        newStock,
-      )
-    } catch (err: any) {
-      console.error('[stockIn] upsertBalance FAILED:', err)
-      throw err
-    }
-    console.log('[stockIn] Step 6: done')
+    await inventoryRepository.upsertBalance(
+      params.tenantId,
+      params.warehouseId,
+      params.productId,
+      newStock,
+    )
 
     await createAuditLog({
       tenantId: params.tenantId,
