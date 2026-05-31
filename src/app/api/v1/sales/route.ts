@@ -26,11 +26,16 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
   const body = await parseBody(request)
   const input = validateSchema(saleSchema, body)
 
-  const sale = await saleService.create({
-    ...input,
-    tenantId,
-    branchId: input.branchId,
-    createdBy: userId,
-  })
-  return successResponse(sale, 'Sale completed', 201)
+  try {
+    const sale = await saleService.create({
+      ...input,
+      tenantId,
+      branchId: input.branchId,
+      createdBy: userId,
+    })
+    return successResponse(sale, 'Sale completed', 201)
+  } catch (error: any) {
+    console.error('[Sales POST] Error:', error)
+    return successResponse({ error: error.message }, error.message || 'Sale failed', 400)
+  }
 })
