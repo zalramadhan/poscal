@@ -45,6 +45,12 @@ export const mainNavItems: NavItem[] = [
     title: 'Products',
     href: '/app/products',
     icon: Package,
+    children: [
+      { title: 'Products', href: '/app/products', icon: Package },
+      { title: 'Categories', href: '/app/categories', icon: Package },
+      { title: 'Brands', href: '/app/brands', icon: Package },
+      { title: 'Units', href: '/app/units', icon: Package },
+    ],
   },
   {
     title: 'Inventory',
