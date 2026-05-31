@@ -20,11 +20,6 @@ interface TransferItem {
   createdAt: string
 }
 
-const mockTransfers: TransferItem[] = [
-  { id: '1', transferNumber: 'TRF-2026-0001', fromWarehouse: 'Gudang Utama', toWarehouse: 'Gudang Surabaya', status: 'RECEIVED', items: 50, createdAt: new Date().toISOString() },
-  { id: '2', transferNumber: 'TRF-2026-0002', fromWarehouse: 'Gudang Jakarta', toWarehouse: 'Gudang Utama', status: 'IN_TRANSIT', items: 25, createdAt: new Date().toISOString() },
-]
-
 const statusVariant: Record<string, 'success' | 'warning' | 'default' | 'info'> = {
   DRAFT: 'default',
   IN_TRANSIT: 'warning',
@@ -51,6 +46,27 @@ const columns: ColumnDef<TransferItem>[] = [
 ]
 
 export default function TransfersPage() {
+  const [transfers, setTransfers] = React.useState<TransferItem[]>([])
+  const [loading, setLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    fetchTransfers()
+  }, [])
+
+  async function fetchTransfers() {
+    try {
+      const res = await fetch('/api/v1/stock-transfers')
+      if (res.ok) {
+        const data = await res.json()
+        setTransfers(data.data || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div>
       <PageHeader title="Stock Transfers" description="Manage inter-warehouse transfers">
@@ -58,7 +74,17 @@ export default function TransfersPage() {
       </PageHeader>
       <Card>
         <CardContent className="pt-6">
-          <DataTable columns={columns} data={mockTransfers} />
+          {loading ? (
+            <div className="flex items-center justify-center h-40">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : transfers.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-40 text-center">
+              <p className="text-sm text-muted-foreground">No transfers yet</p>
+            </div>
+          ) : (
+            <DataTable columns={columns} data={transfers} />
+          )}
         </CardContent>
       </Card>
     </div>

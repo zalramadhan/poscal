@@ -7,19 +7,33 @@ import { PageHeader } from '@/components/shared/page-states'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
-import { PackageSearch, AlertTriangle, Warehouse, ArrowUpDown } from 'lucide-react'
-
-const mockInventoryItems = [
-  { id: '1', product: { name: 'Indomie Goreng', sku: 'IND-001' }, warehouse: 'Gudang Utama', quantity: 500, sellingPrice: 3500 },
-  { id: '2', product: { name: 'Aqua 600ml', sku: 'AQU-001' }, warehouse: 'Gudang Utama', quantity: 1000, sellingPrice: 3000 },
-  { id: '3', product: { name: 'Kopiko 78g', sku: 'KOP-001' }, warehouse: 'Gudang Utama', quantity: 8, sellingPrice: 1500 },
-  { id: '4', product: { name: 'Samsung TV 32"', sku: 'SAM-001' }, warehouse: 'Gudang Elektronik', quantity: 3, sellingPrice: 3500000 },
-  { id: '5', product: { name: 'Teh Botol Sosro', sku: 'TBS-001' }, warehouse: 'Gudang Utama', quantity: 200, sellingPrice: 3500 },
-]
+import { PackageSearch, AlertTriangle, Warehouse } from 'lucide-react'
 
 export default function InventoryPage() {
+  const [balances, setBalances] = React.useState<any[]>([])
+  const [loading, setLoading] = React.useState(true)
   const [filter, setFilter] = React.useState<'all' | 'low'>('all')
-  const items = filter === 'low' ? mockInventoryItems.filter((i) => i.quantity < 10) : mockInventoryItems
+
+  React.useEffect(() => {
+    fetchInventory()
+  }, [])
+
+  async function fetchInventory() {
+    try {
+      const res = await fetch('/api/v1/inventory/balances')
+      if (res.ok) {
+        const data = await res.json()
+        setBalances(data.data || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const lowStockItems = balances.filter((b) => (b.quantity || 0) < 10)
+  const items = filter === 'low' ? lowStockItems : balances
 
   return (
     <div className="space-y-6">
@@ -49,7 +63,7 @@ export default function InventoryPage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Items</p>
-              <p className="text-xl font-semibold">156</p>
+              <p className="text-xl font-semibold">{balances.length}</p>
             </div>
           </CardContent>
         </Card>
@@ -60,7 +74,7 @@ export default function InventoryPage() {
             </div>
             <div>
               <p className="text-sm text-danger">Low Stock Items</p>
-              <p className="text-xl font-semibold text-danger">8</p>
+              <p className="text-xl font-semibold text-danger">{lowStockItems.length}</p>
             </div>
           </CardContent>
         </Card>
@@ -71,7 +85,7 @@ export default function InventoryPage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Warehouses</p>
-              <p className="text-xl font-semibold">3</p>
+              <p className="text-xl font-semibold">1</p>
             </div>
           </CardContent>
         </Card>
@@ -97,9 +111,9 @@ export default function InventoryPage() {
                 className="relative"
               >
                 Low Stock
-                {mockInventoryItems.filter((i) => i.quantity < 10).length > 0 && (
+                {lowStockItems.length > 0 && (
                   <Badge variant="danger" size="sm" className="ml-1">
-                    {mockInventoryItems.filter((i) => i.quantity < 10).length}
+                    {lowStockItems.length}
                   </Badge>
                 )}
               </Button>
@@ -107,36 +121,40 @@ export default function InventoryPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Product</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">SKU</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Warehouse</th>
-                  <th className="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Quantity</th>
-                  <th className="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Value</th>
-                  <th className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {items.map((item) => (
-                  <tr key={item.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-4 py-3 text-sm font-medium">{item.product.name}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{item.product.sku}</td>
-                    <td className="px-4 py-3 text-sm">{item.warehouse}</td>
-                    <td className="px-4 py-3 text-sm text-right font-medium">{item.quantity.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-sm text-right">{formatCurrency(item.quantity * item.sellingPrice)}</td>
-                    <td className="px-4 py-3 text-center">
-                      <Badge variant={item.quantity < 10 ? 'danger' : 'success'}>
-                        {item.quantity < 10 ? 'Low Stock' : 'In Stock'}
-                      </Badge>
-                    </td>
+          {loading ? (
+            <div className="flex items-center justify-center h-40">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : items.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-40 text-center">
+              <PackageSearch className="h-10 w-10 text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground">No inventory data</p>
+              <p className="text-xs text-muted-foreground">Do Stock In to add inventory</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Product</th>
+                    <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">SKU</th>
+                    <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Warehouse</th>
+                    <th className="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Quantity</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {items.map((item) => (
+                    <tr key={item.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-4 py-3 text-sm font-medium">{item.product?.name || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground">{item.product?.sku || '-'}</td>
+                      <td className="px-4 py-3 text-sm">{item.warehouse?.name || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-right font-medium">{Number(item.quantity || 0).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
