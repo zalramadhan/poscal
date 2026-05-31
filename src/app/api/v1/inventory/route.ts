@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { successResponse, paginatedResponse } from '@/lib/api-response'
+import { successResponse, paginatedResponse, errorResponse } from '@/lib/api-response'
 import { getTenantId, parseSearchParams, parseBody, withErrorHandler } from '@/lib/api-handler'
 import { inventoryService } from '@/lib/services/inventory.service'
 import { inventoryRepository } from '@/modules/inventory/repositories/inventory.repository'
@@ -33,8 +33,13 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
 
   if (action === 'stock-in') {
     const input = validateSchema(stockInSchema, body)
-    const movement = await inventoryService.stockIn({ ...input, tenantId, createdBy: userId })
-    return successResponse(movement, 'Stock in recorded', 201)
+    try {
+      const movement = await inventoryService.stockIn({ ...input, tenantId, createdBy: userId })
+      return successResponse(movement, 'Stock in recorded', 201)
+    } catch (error: any) {
+      console.error('Stock in error:', error)
+      return errorResponse(error.message || 'Stock in failed', 500)
+    }
   }
 
   if (action === 'stock-out') {

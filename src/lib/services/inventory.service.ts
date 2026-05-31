@@ -4,6 +4,7 @@
 // ──────────────────────────────────────────────────────
 
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '../../../../generated/prisma/client'
 import { inventoryRepository } from '@/modules/inventory/repositories/inventory.repository'
 import { createAuditLog } from '@/lib/audit'
 import { InsufficientStockError } from '@/lib/errors'
@@ -33,35 +34,61 @@ export const inventoryService = {
     const previousStock = await this.getCurrentStock(params.warehouseId, params.productId)
     const newStock = previousStock + params.quantity
 
-    const movement = await inventoryRepository.createMovement({
-      tenantId: params.tenantId,
-      warehouseId: params.warehouseId,
-      productId: params.productId,
-      movementType: 'PURCHASE',
-      quantity: params.quantity,
-      previousStock,
-      currentStock: newStock,
-      referenceType: params.referenceType,
-      referenceId: params.referenceId,
-      notes: params.notes,
-      createdBy: params.createdBy,
-    })
+    let movement
+    try {
+      movement = await prisma.inventoryMovement.create({
+        data: {
+          tenantId: params.tenantId,
+          warehouseId: params.warehouseId,
+          productId: params.productId,
+          movementType: 'PURCHASE',
+          quantity: params.quantity,
+          previousStock,
+          currentStock: newStock,
+          referenceType: params.referenceType,
+          referenceId: params.referenceId,
+          notes: params.notes,
+          createdBy: params.createdBy,
+        } as Prisma.InventoryMovementUncheckedCreateInput,
+      })
+    } catch (error: any) {
+      console.error('[stockIn] Failed to create movement:', error.message, error.code, error.meta)
+      throw new Error(`Failed to create movement: ${error.message}`)
+    }
 
-    await inventoryRepository.upsertBalance(
-      params.tenantId,
-      params.warehouseId,
-      params.productId,
-      newStock,
-    )
+    try {
+      await prisma.inventoryBalance.upsert({
+        where: {
+          warehouseId_productId: {
+            warehouseId: params.warehouseId,
+            productId: params.productId,
+          },
+        },
+        update: { quantity: newStock },
+        create: {
+          tenantId: params.tenantId,
+          warehouseId: params.warehouseId,
+          productId: params.productId,
+          quantity: newStock,
+        },
+      })
+    } catch (error: any) {
+      console.error('[stockIn] Failed to upsert balance:', error.message)
+      throw new Error(`Failed to upsert balance: ${error.message}`)
+    }
 
-    await createAuditLog({
-      tenantId: params.tenantId,
-      userId: params.createdBy,
-      entity: 'inventory',
-      entityId: movement.id,
-      action: 'STOCK_IN',
-      newValue: { quantity: params.quantity, previousStock, newStock },
-    })
+    try {
+      await createAuditLog({
+        tenantId: params.tenantId,
+        userId: params.createdBy,
+        entity: 'inventory',
+        entityId: movement.id,
+        action: 'STOCK_IN',
+        newValue: { quantity: params.quantity, previousStock, newStock },
+      })
+    } catch (error: any) {
+      console.error('[stockIn] Failed to create audit log:', error.message)
+    }
 
     return movement
   },
