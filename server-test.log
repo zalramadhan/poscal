@@ -1,0 +1,45 @@
+   ▲ Next.js 15.5.18
+   - Local:        http://localhost:3002
+   - Network:      http://100.65.31.19:3002
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 1585ms
+ ○ Compiling /api/v1/customers ...
+ ✓ Compiled /api/v1/customers in 1072ms (331 modules)
+prisma:error 
+Invalid `prisma.customer.create()` invocation:
+
+
+Foreign key constraint violated on the constraint: `Customer_tenantId_fkey`
+[API Error] Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.customer.create()` invocation:
+
+
+Foreign key constraint violated on the constraint: `Customer_tenantId_fkey`
+    at async Object.create (src\lib\services\customer.service.ts:42:22)
+    at async eval (src\app\api\v1\customers\route.ts:23:20)
+    at async eval (src\lib\api-handler.ts:44:14)
+  40 |
+  41 |   async create(tenantId: string, userId: string, input: CustomerInput) {
+> 42 |     const customer = await prisma.customer.create({ data: { ...input, tenantId } })
+     |                      ^
+  43 |     await createAuditLog({ tenantId, userId, entity: 'customer', entityId: customer.id, action: 'CREATE', newValue: { name: customer.name } })
+  44 |     return customer
+  45 |   }, {
+  code: 'P2003',
+  meta: [Object],
+  clientVersion: '7.8.0'
+}
+ POST /api/v1/customers 500 in 1992ms
+ ✓ Compiled in 40ms
+   Reload env: .env
+ ✓ Compiled in 252ms (195 modules)
+   Reload env: .env
+ ✓ Compiled in 77ms (195 modules)
+   Reload env: .env
+ ✓ Compiled in 79ms (195 modules)
+   Reload env: .env
+ ✓ Compiled in 64ms (195 modules)
+   Reload env: .env
+ ✓ Compiled in 66ms (195 modules)

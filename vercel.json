@@ -1,0 +1,14 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run db:generate && npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
+  "devCommand": "npm run dev",
+  "regions": ["sin1"], // Singapore - matches Supabase region
+  "env": {
+    "DATABASE_URL": "@database-url",
+    "BETTER_AUTH_SECRET": "@better-auth-secret",
+    "BETTER_AUTH_URL": "@app-url",
+    "NEXT_PUBLIC_APP_URL": "@app-url"
+  }
+}

@@ -1,0 +1,53 @@
+   ▲ Next.js 15.5.18
+   - Local:        http://localhost:3003
+   - Network:      http://100.65.31.19:3003
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 1938ms
+ ○ Compiling /api/v1/customers ...
+ ✓ Compiled /api/v1/customers in 815ms (331 modules)
+prisma:query SELECT "public"."Tenant"."id", "public"."Tenant"."name", "public"."Tenant"."slug", "public"."Tenant"."email", "public"."Tenant"."phone", "public"."Tenant"."plan", "public"."Tenant"."status", "public"."Tenant"."createdAt", "public"."Tenant"."updatedAt" FROM "public"."Tenant" WHERE 1=1 ORDER BY "public"."Tenant"."createdAt" ASC LIMIT $1 OFFSET $2
+prisma:query INSERT INTO "public"."Customer" ("id","tenantId","name","phone","email","points","tier","createdAt","updatedAt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING "public"."Customer"."id", "public"."Customer"."tenantId", "public"."Customer"."name", "public"."Customer"."phone", "public"."Customer"."email", "public"."Customer"."address", "public"."Customer"."notes", "public"."Customer"."points", "public"."Customer"."tier", "public"."Customer"."deletedAt", "public"."Customer"."createdAt", "public"."Customer"."updatedAt"
+prisma:query INSERT INTO "public"."AuditLog" ("id","tenantId","userId","entity","entityId","action","newValue","createdAt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "public"."AuditLog"."id", "public"."AuditLog"."tenantId", "public"."AuditLog"."userId", "public"."AuditLog"."entity", "public"."AuditLog"."entityId", "public"."AuditLog"."action", "public"."AuditLog"."oldValue", "public"."AuditLog"."newValue", "public"."AuditLog"."createdAt"
+ POST /api/v1/customers 201 in 1179ms
+prisma:query SELECT "public"."Tenant"."id", "public"."Tenant"."name", "public"."Tenant"."slug", "public"."Tenant"."email", "public"."Tenant"."phone", "public"."Tenant"."plan", "public"."Tenant"."status", "public"."Tenant"."createdAt", "public"."Tenant"."updatedAt" FROM "public"."Tenant" WHERE 1=1 ORDER BY "public"."Tenant"."createdAt" ASC LIMIT $1 OFFSET $2
+prisma:query INSERT INTO "public"."Customer" ("id","tenantId","name","phone","email","points","tier","createdAt","updatedAt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING "public"."Customer"."id", "public"."Customer"."tenantId", "public"."Customer"."name", "public"."Customer"."phone", "public"."Customer"."email", "public"."Customer"."address", "public"."Customer"."notes", "public"."Customer"."points", "public"."Customer"."tier", "public"."Customer"."deletedAt", "public"."Customer"."createdAt", "public"."Customer"."updatedAt"
+prisma:query INSERT INTO "public"."AuditLog" ("id","tenantId","userId","entity","entityId","action","newValue","createdAt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "public"."AuditLog"."id", "public"."AuditLog"."tenantId", "public"."AuditLog"."userId", "public"."AuditLog"."entity", "public"."AuditLog"."entityId", "public"."AuditLog"."action", "public"."AuditLog"."oldValue", "public"."AuditLog"."newValue", "public"."AuditLog"."createdAt"
+ POST /api/v1/customers 201 in 56ms
+ ○ Compiling /api/v1/warehouses ...
+ ✓ Compiled /api/v1/warehouses in 1013ms (347 modules)
+prisma:query SELECT "public"."Tenant"."id", "public"."Tenant"."name", "public"."Tenant"."slug", "public"."Tenant"."email", "public"."Tenant"."phone", "public"."Tenant"."plan", "public"."Tenant"."status", "public"."Tenant"."createdAt", "public"."Tenant"."updatedAt" FROM "public"."Tenant" WHERE 1=1 ORDER BY "public"."Tenant"."createdAt" ASC LIMIT $1 OFFSET $2
+prisma:query SELECT "public"."Brand"."id", "public"."Brand"."tenantId", "public"."Brand"."name", "public"."Brand"."description", "public"."Brand"."createdAt", "public"."Brand"."updatedAt" FROM "public"."Brand" WHERE ("public"."Brand"."tenantId" = $1 AND "public"."Brand"."name" = $2) LIMIT $3 OFFSET $4
+prisma:query SELECT "public"."Tenant"."id", "public"."Tenant"."name", "public"."Tenant"."slug", "public"."Tenant"."email", "public"."Tenant"."phone", "public"."Tenant"."plan", "public"."Tenant"."status", "public"."Tenant"."createdAt", "public"."Tenant"."updatedAt" FROM "public"."Tenant" WHERE 1=1 ORDER BY "public"."Tenant"."createdAt" ASC LIMIT $1 OFFSET $2
+prisma:query INSERT INTO "public"."Brand" ("id","tenantId","name","createdAt","updatedAt") VALUES ($1,$2,$3,$4,$5) RETURNING "public"."Brand"."id", "public"."Brand"."tenantId", "public"."Brand"."name", "public"."Brand"."description", "public"."Brand"."createdAt", "public"."Brand"."updatedAt"
+prisma:query SELECT "public"."Tenant"."id", "public"."Tenant"."name", "public"."Tenant"."slug", "public"."Tenant"."email", "public"."Tenant"."phone", "public"."Tenant"."plan", "public"."Tenant"."status", "public"."Tenant"."createdAt", "public"."Tenant"."updatedAt" FROM "public"."Tenant" WHERE 1=1 ORDER BY "public"."Tenant"."createdAt" ASC LIMIT $1 OFFSET $2
+prisma:query SELECT "public"."Category"."id", "public"."Category"."tenantId", "public"."Category"."name", "public"."Category"."description", "public"."Category"."createdAt", "public"."Category"."updatedAt" FROM "public"."Category" WHERE ("public"."Category"."tenantId" = $1 AND "public"."Category"."name" = $2) LIMIT $3 OFFSET $4
+prisma:query INSERT INTO "public"."AuditLog" ("id","tenantId","userId","entity","entityId","action","newValue","createdAt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "public"."AuditLog"."id", "public"."AuditLog"."tenantId", "public"."AuditLog"."userId", "public"."AuditLog"."entity", "public"."AuditLog"."entityId", "public"."AuditLog"."action", "public"."AuditLog"."oldValue", "public"."AuditLog"."newValue", "public"."AuditLog"."createdAt"
+ POST /api/v1/brands 201 in 1173ms
+prisma:query INSERT INTO "public"."Supplier" ("id","tenantId","name","phone","createdAt","updatedAt") VALUES ($1,$2,$3,$4,$5,$6) RETURNING "public"."Supplier"."id", "public"."Supplier"."tenantId", "public"."Supplier"."name", "public"."Supplier"."phone", "public"."Supplier"."email", "public"."Supplier"."address", "public"."Supplier"."notes", "public"."Supplier"."deletedAt", "public"."Supplier"."createdAt", "public"."Supplier"."updatedAt"
+prisma:query INSERT INTO "public"."Category" ("id","tenantId","name","createdAt","updatedAt") VALUES ($1,$2,$3,$4,$5) RETURNING "public"."Category"."id", "public"."Category"."tenantId", "public"."Category"."name", "public"."Category"."description", "public"."Category"."createdAt", "public"."Category"."updatedAt"
+prisma:query INSERT INTO "public"."AuditLog" ("id","tenantId","userId","entity","entityId","action","newValue","createdAt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "public"."AuditLog"."id", "public"."AuditLog"."tenantId", "public"."AuditLog"."userId", "public"."AuditLog"."entity", "public"."AuditLog"."entityId", "public"."AuditLog"."action", "public"."AuditLog"."oldValue", "public"."AuditLog"."newValue", "public"."AuditLog"."createdAt"
+ POST /api/v1/suppliers 201 in 1204ms
+prisma:query INSERT INTO "public"."AuditLog" ("id","tenantId","userId","entity","entityId","action","newValue","createdAt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "public"."AuditLog"."id", "public"."AuditLog"."tenantId", "public"."AuditLog"."userId", "public"."AuditLog"."entity", "public"."AuditLog"."entityId", "public"."AuditLog"."action", "public"."AuditLog"."oldValue", "public"."AuditLog"."newValue", "public"."AuditLog"."createdAt"
+ POST /api/v1/categories 201 in 1118ms
+prisma:query SELECT "public"."Tenant"."id", "public"."Tenant"."name", "public"."Tenant"."slug", "public"."Tenant"."email", "public"."Tenant"."phone", "public"."Tenant"."plan", "public"."Tenant"."status", "public"."Tenant"."createdAt", "public"."Tenant"."updatedAt" FROM "public"."Tenant" WHERE 1=1 ORDER BY "public"."Tenant"."createdAt" ASC LIMIT $1 OFFSET $2
+prisma:query SELECT "public"."Warehouse"."id", "public"."Warehouse"."tenantId", "public"."Warehouse"."branchId", "public"."Warehouse"."name", "public"."Warehouse"."code", "public"."Warehouse"."address", "public"."Warehouse"."isActive", "public"."Warehouse"."createdAt", "public"."Warehouse"."updatedAt" FROM "public"."Warehouse" WHERE ("public"."Warehouse"."tenantId" = $1 AND "public"."Warehouse"."code" = $2) LIMIT $3 OFFSET $4
+prisma:query INSERT INTO "public"."Warehouse" ("id","tenantId","branchId","name","code","isActive","createdAt","updatedAt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "public"."Warehouse"."id"
+prisma:query SELECT "public"."Warehouse"."id", "public"."Warehouse"."tenantId", "public"."Warehouse"."branchId", "public"."Warehouse"."name", "public"."Warehouse"."code", "public"."Warehouse"."address", "public"."Warehouse"."isActive", "public"."Warehouse"."createdAt", "public"."Warehouse"."updatedAt" FROM "public"."Warehouse" WHERE "public"."Warehouse"."id" = $1 LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Branch"."id", "public"."Branch"."tenantId", "public"."Branch"."name", "public"."Branch"."code", "public"."Branch"."address", "public"."Branch"."phone", "public"."Branch"."isActive", "public"."Branch"."createdAt", "public"."Branch"."updatedAt" FROM "public"."Branch" WHERE "public"."Branch"."id" = $1 OFFSET $2
+prisma:query COMMIT
+prisma:query INSERT INTO "public"."AuditLog" ("id","tenantId","userId","entity","entityId","action","newValue","createdAt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "public"."AuditLog"."id", "public"."AuditLog"."tenantId", "public"."AuditLog"."userId", "public"."AuditLog"."entity", "public"."AuditLog"."entityId", "public"."AuditLog"."action", "public"."AuditLog"."oldValue", "public"."AuditLog"."newValue", "public"."AuditLog"."createdAt"
+ POST /api/v1/warehouses 201 in 833ms
+ ✓ Compiled in 40ms
+   Reload env: .env
+ ✓ Compiled in 149ms (195 modules)
+   Reload env: .env
+ ✓ Compiled in 92ms (195 modules)
+   Reload env: .env
+ ✓ Compiled in 65ms (195 modules)
+   Reload env: .env
+ ✓ Compiled in 63ms (195 modules)
+   Reload env: .env
+ ✓ Compiled in 84ms (195 modules)
+^C
