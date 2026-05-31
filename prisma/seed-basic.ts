@@ -68,6 +68,21 @@ async function main() {
     symbol,
   }))
 
+  // Create payment methods
+  const paymentMethods = [
+    { id: 'cash', name: 'Cash' },
+    { id: 'debit', name: 'Debit Card' },
+    { id: 'qris', name: 'QRIS' },
+  ]
+
+  for (const pm of paymentMethods) {
+    await prisma.paymentMethod.upsert({
+      where: { id: pm.id },
+      update: pm,
+      create: { ...pm, tenantId: tenant.id },
+    })
+  }
+
   for (const unit of units) {
     await prisma.unit.upsert({
       where: { id: unit.id },

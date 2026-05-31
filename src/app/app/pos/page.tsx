@@ -32,9 +32,9 @@ interface CartItem {
 }
 
 const paymentMethods = [
-  { id: '1', name: 'Cash', icon: DollarSign },
-  { id: '2', name: 'Debit Card', icon: CreditCard },
-  { id: '3', name: 'QRIS', icon: Smartphone },
+  { id: 'cash', name: 'Cash', icon: DollarSign },
+  { id: 'debit', name: 'Debit Card', icon: CreditCard },
+  { id: 'qris', name: 'QRIS', icon: Smartphone },
 ]
 
 export default function POSPage() {
@@ -89,7 +89,7 @@ export default function POSPage() {
 
     try {
       const body = {
-        branchId: '1', // Default branch — in production would come from user session
+        branchId: 'default-branch', // Default branch — in production would come from user session
         items: cart.map((item) => ({
           productId: item.id,
           quantity: item.quantity,
