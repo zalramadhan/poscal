@@ -122,9 +122,8 @@ export const saleService = {
       return newSale
     })
 
-    // Mark as completed
-    sale.status = 'COMPLETED'
-    await saleRepository.updateStatus(sale.id, 'COMPLETED')
+    // Mark as completed using raw SQL to avoid enum type issue
+    await prisma.$executeRaw`UPDATE "public"."Sale" SET status = 'COMPLETED' WHERE id = ${sale.id}`
 
     await createAuditLog({
       tenantId: params.tenantId,
