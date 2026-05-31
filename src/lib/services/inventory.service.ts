@@ -100,26 +100,41 @@ export const inventoryService = {
 
     const newStock = previousStock - params.quantity
 
-    const movement = await inventoryRepository.createMovement({
-      tenantId: params.tenantId,
-      warehouseId: params.warehouseId,
-      productId: params.productId,
-      movementType: 'SALE',
-      quantity: -params.quantity,
-      previousStock,
-      currentStock: newStock,
-      referenceType: params.referenceType,
-      referenceId: params.referenceId,
-      notes: params.notes,
-      createdBy: params.createdBy,
-    })
-
-    await inventoryRepository.upsertBalance(
+    const result = await prisma.$queryRawUnsafe<any[]>(
+      `INSERT INTO "public"."InventoryMovement" 
+        ("tenantId", "warehouseId", "productId", "movementType", "quantity", "previousStock", "currentStock", "referenceType", "referenceId", "notes", "createdBy", "createdAt") 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW()) 
+       RETURNING *`,
       params.tenantId,
       params.warehouseId,
       params.productId,
+      'SALE',
+      -params.quantity,
+      previousStock,
       newStock,
+      params.referenceType || null,
+      params.referenceId || null,
+      params.notes || null,
+      params.createdBy
     )
+
+    const movement = result[0]
+
+    await prisma.inventoryBalance.upsert({
+      where: {
+        warehouseId_productId: {
+          warehouseId: params.warehouseId,
+          productId: params.productId,
+        },
+      },
+      update: { quantity: newStock },
+      create: {
+        tenantId: params.tenantId,
+        warehouseId: params.warehouseId,
+        productId: params.productId,
+        quantity: newStock,
+      },
+    })
 
     await createAuditLog({
       tenantId: params.tenantId,
@@ -144,24 +159,41 @@ export const inventoryService = {
     const previousStock = await this.getCurrentStock(params.warehouseId, params.productId)
     const difference = params.newQuantity - previousStock
 
-    const movement = await inventoryRepository.createMovement({
-      tenantId: params.tenantId,
-      warehouseId: params.warehouseId,
-      productId: params.productId,
-      movementType: 'ADJUSTMENT',
-      quantity: difference,
-      previousStock,
-      currentStock: params.newQuantity,
-      notes: params.notes,
-      createdBy: params.createdBy,
-    })
-
-    await inventoryRepository.upsertBalance(
+    const result = await prisma.$queryRawUnsafe<any[]>(
+      `INSERT INTO "public"."InventoryMovement" 
+        ("tenantId", "warehouseId", "productId", "movementType", "quantity", "previousStock", "currentStock", "referenceType", "referenceId", "notes", "createdBy", "createdAt") 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW()) 
+       RETURNING *`,
       params.tenantId,
       params.warehouseId,
       params.productId,
+      'ADJUSTMENT',
+      difference,
+      previousStock,
       params.newQuantity,
+      null,
+      null,
+      params.notes || null,
+      params.createdBy
     )
+
+    const movement = result[0]
+
+    await prisma.inventoryBalance.upsert({
+      where: {
+        warehouseId_productId: {
+          warehouseId: params.warehouseId,
+          productId: params.productId,
+        },
+      },
+      update: { quantity: params.newQuantity },
+      create: {
+        tenantId: params.tenantId,
+        warehouseId: params.warehouseId,
+        productId: params.productId,
+        quantity: params.newQuantity,
+      },
+    })
 
     await createAuditLog({
       tenantId: params.tenantId,
