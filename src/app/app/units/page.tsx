@@ -1,18 +1,20 @@
 'use client'
 
 import * as React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { PageHeader } from '@/components/shared/page-states'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { Badge } from '@/components/ui/badge'
 import { Plus, Edit, Trash2, Scale } from 'lucide-react'
 
 export default function UnitsPage() {
   const [dialogOpen, setDialogOpen] = React.useState(false)
   const [units, setUnits] = React.useState<Array<{id: string, name: string, symbol: string}>>([])
   const [loading, setLoading] = React.useState(true)
+  const [name, setName] = React.useState('')
+  const [symbol, setSymbol] = React.useState('')
+  const [saving, setSaving] = React.useState(false)
 
   React.useEffect(() => {
     fetchUnits()
@@ -29,6 +31,28 @@ export default function UnitsPage() {
       console.error('Failed to fetch units:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleSave() {
+    if (!name || !symbol) return
+    setSaving(true)
+    try {
+      const res = await fetch('/api/v1/units', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, symbol }),
+      })
+      if (res.ok) {
+        setName('')
+        setSymbol('')
+        setDialogOpen(false)
+        fetchUnits()
+      }
+    } catch (error) {
+      console.error('Failed to create unit:', error)
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -92,11 +116,11 @@ export default function UnitsPage() {
             <DialogDescription>Create a new product unit (e.g., pcs, kg, liter)</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <Input label="Unit Name" placeholder="e.g., Pieces" />
-            <Input label="Symbol" placeholder="e.g., pcs" />
+            <Input label="Unit Name" placeholder="e.g., Pieces" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input label="Symbol" placeholder="e.g., pcs" value={symbol} onChange={(e) => setSymbol(e.target.value)} />
             <div className="flex justify-end gap-3">
               <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-              <Button>Save</Button>
+              <Button onClick={handleSave} disabled={saving || !name || !symbol}>{saving ? 'Saving...' : 'Save'}</Button>
             </div>
           </div>
         </DialogContent>
