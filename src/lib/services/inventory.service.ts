@@ -30,13 +30,26 @@ export const inventoryService = {
     referenceId?: string
     createdBy: string
   }) {
-    console.log('[stockIn] Step 1: start', JSON.stringify(params))
+    console.log('[stockIn] Step 1: start')
     const previousStock = await this.getCurrentStock(params.warehouseId, params.productId)
-    console.log('[stockIn] Step 2: got previousStock:', previousStock)
+    console.log('[stockIn] Step 2: previousStock =', previousStock)
     const newStock = previousStock + params.quantity
-    console.log('[stockIn] Step 3: calculated newStock:', newStock)
+    console.log('[stockIn] Step 3: newStock =', newStock)
 
-    console.log('[stockIn] Step 4: calling createMovement')
+    console.log('[stockIn] Step 4: createMovement with:', {
+      tenantId: params.tenantId,
+      warehouseId: params.warehouseId,
+      productId: params.productId,
+      movementType: 'PURCHASE',
+      quantity: params.quantity,
+      previousStock,
+      currentStock: newStock,
+      referenceType: params.referenceType,
+      referenceId: params.referenceId,
+      notes: params.notes,
+      createdBy: params.createdBy,
+    })
+
     let movement
     try {
       movement = await inventoryRepository.createMovement({
@@ -52,13 +65,15 @@ export const inventoryService = {
         notes: params.notes,
         createdBy: params.createdBy,
       })
-      console.log('[stockIn] Step 5: movement created:', movement.id)
     } catch (err) {
-      console.error('[stockIn] createMovement error:', err)
+      console.error('[stockIn] createMovement FAILED:', err)
+      console.error('[stockIn] error message:', err?.message)
+      console.error('[stockIn] error code:', err?.code)
+      console.error('[stockIn] error meta:', err?.meta)
       throw err
     }
+    console.log('[stockIn] Step 5: movement created, id =', movement.id)
 
-    console.log('[stockIn] Step 6: calling upsertBalance')
     try {
       await inventoryRepository.upsertBalance(
         params.tenantId,
@@ -66,11 +81,11 @@ export const inventoryService = {
         params.productId,
         newStock,
       )
-      console.log('[stockIn] Step 7: balance upserted')
     } catch (err) {
-      console.error('[stockIn] upsertBalance error:', err)
+      console.error('[stockIn] upsertBalance FAILED:', err)
       throw err
     }
+    console.log('[stockIn] Step 6: done')
 
     await inventoryRepository.upsertBalance(
       params.tenantId,
