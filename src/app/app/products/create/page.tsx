@@ -14,6 +14,9 @@ export default function CreateProductPage() {
   const router = useRouter()
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [categories, setCategories] = React.useState<Array<{id: string, name: string}>>([])
+  const [brands, setBrands] = React.useState<Array<{id: string, name: string}>>([])
+  const [units, setUnits] = React.useState<Array<{id: string, name: string}>>([])
   const [form, setForm] = React.useState({
     name: '',
     sku: '',
@@ -26,6 +29,35 @@ export default function CreateProductPage() {
     description: '',
     image: '',
   })
+
+  React.useEffect(() => {
+    fetchData()
+  }, [])
+
+  async function fetchData() {
+    try {
+      const [catRes, brandRes, unitRes] = await Promise.all([
+        fetch('/api/v1/categories'),
+        fetch('/api/v1/brands'),
+        fetch('/api/v1/units'),
+      ])
+      
+      if (catRes.ok) {
+        const catData = await catRes.json()
+        setCategories(catData.data || [])
+      }
+      if (brandRes.ok) {
+        const brandData = await brandRes.json()
+        setBrands(brandData.data || [])
+      }
+      if (unitRes.ok) {
+        const unitData = await unitRes.json()
+        setUnits(unitData.data || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch data:', err)
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -113,33 +145,21 @@ export default function CreateProductPage() {
               <Select
                 label="Category"
                 placeholder="Select category"
-                options={[
-                  { value: '1', label: 'Makanan' },
-                  { value: '2', label: 'Minuman' },
-                  { value: '3', label: 'Elektronik' },
-                ]}
+                options={categories.map(c => ({ value: c.id, label: c.name }))}
                 value={form.categoryId}
                 onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
               />
               <Select
                 label="Brand"
                 placeholder="Select brand"
-                options={[
-                  { value: '1', label: 'Indomie' },
-                  { value: '2', label: 'Aqua' },
-                  { value: '3', label: 'Kopiko' },
-                ]}
+                options={brands.map(b => ({ value: b.id, label: b.name }))}
                 value={form.brandId}
                 onChange={(e) => setForm({ ...form, brandId: e.target.value })}
               />
               <Select
                 label="Unit"
                 placeholder="Select unit"
-                options={[
-                  { value: '1', label: 'Pcs' },
-                  { value: '2', label: 'Botol' },
-                  { value: '3', label: 'Kg' },
-                ]}
+                options={units.map(u => ({ value: u.id, label: u.name }))}
                 value={form.unitId}
                 onChange={(e) => setForm({ ...form, unitId: e.target.value })}
               />
