@@ -16,6 +16,7 @@ import {
   ArrowUpRight,
   XCircle,
   AlertCircle,
+  Clock,
 } from 'lucide-react'
 
 function StatCard({
@@ -38,90 +39,33 @@ function StatCard({
         <div className="mt-4">
           <p className="text-sm text-muted-foreground">{title}</p>
           <p className="text-2xl font-semibold mt-1">{value}</p>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-interface LowStockData {
-  critical: any[]
-  warning: any[]
-  all: any[]
-}
-
-export default function DashboardPage() {
-  const [loading, setLoading] = React.useState(true)
-  const [summary, setSummary] = React.useState<any>({
-    revenueToday: 0,
-    salesToday: 0,
-    totalProducts: 0,
-    lowStockCount: 0,
-    totalCustomers: 0,
-    recentSales: [],
-    topProducts: [],
-  })
-  const [lowStock, setLowStock] = React.useState<LowStockData>({ critical: [], warning: [], all: [] })
-
-  React.useEffect(() => {
-    fetchDashboard()
-  }, [])
-
-  async function fetchDashboard() {
-    try {
-      const [dashboardRes, lowStockRes] = await Promise.all([
-        fetch('/api/v1/dashboard'),
-        fetch('/api/v1/reports/inventory/low-stock'),
-      ])
-
-      if (dashboardRes.ok) {
-        const data = await dashboardRes.json()
-        setSummary(data.data || summary)
-      }
-
-      if (lowStockRes.ok) {
-        const data = await lowStockRes.json()
-        setLowStock(data.data || { critical: [], warning: [], all: [] })
-      }
-    } catch (err) {
-      console.error('Failed to fetch:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (loading) return <LoadingState message="Loading dashboard..." />
-
-  return (
-    <div className="space-y-6">
-      <PageHeader title="Dashboard" description="Overview of your business today" />
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Revenue Today"
-          value={formatCurrency(summary.revenueToday || 0)}
-          icon={DollarSign}
-          color="bg-success"
-        />
-        <StatCard
-          title="Sales Today"
-          value={(summary.salesToday || 0).toString()}
-          icon={ShoppingCart}
-          color="bg-primary"
-        />
-        <StatCard
-          title="Total Products"
-          value={(summary.totalProducts || 0).toString()}
-          icon={Package}
-          color="bg-info"
-        />
+</div>
+          </CardContent>
+        </Card>
         <Card>
           <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div className={`p-2 rounded-lg bg-danger w-fit`}>
-                <AlertTriangle className="h-5 w-5 text-white" />
+            <div className={`p-2 rounded-lg bg-warning w-fit`}>
+              <Clock className="h-5 w-5 text-white" />
+            </div>
+            <div className="mt-4">
+              <p className="text-sm text-muted-foreground">Shifts Today</p>
+              <div className="space-y-1 mt-2">
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Open</span>
+                  <span className="font-medium">{shifts.open}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Pending Approval</span>
+                  <span className="font-medium text-yellow-600">{shifts.pending}</span>
+                </div>
               </div>
+              <Button variant="outline" className="w-full mt-4" asChild>
+                <Link href="/app/shifts">View All Shifts</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
               <Link href="/app/reports/inventory">
                 <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
                   View Report
