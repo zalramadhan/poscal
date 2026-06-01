@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const incomeSchema = z.object({
-  branchId: z.string().min(1, 'Branch is required'),
+  branchId: z.string().optional(),
   amount: z.number().min(1, 'Amount must be >= 1'),
   category: z.string().optional(),
   description: z.string().optional(),
@@ -9,7 +9,7 @@ export const incomeSchema = z.object({
 })
 
 export const expenseSchema = z.object({
-  branchId: z.string().min(1, 'Branch is required'),
+  branchId: z.string().optional(),
   amount: z.number().min(1, 'Amount must be >= 1'),
   category: z.string().optional(),
   description: z.string().optional(),

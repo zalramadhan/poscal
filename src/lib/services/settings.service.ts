@@ -86,6 +86,14 @@ export const settingsService = {
     await createAuditLog({ tenantId, userId, entity: 'role', entityId: id, action: 'DELETE' })
   },
 
+  async deleteBranch(id: string, tenantId: string, userId: string) {
+    const branch = await prisma.branch.findFirst({ where: { id, tenantId } })
+    if (!branch) throw new NotFoundError('Branch')
+
+    await prisma.branch.delete({ where: { id } })
+    await createAuditLog({ tenantId, userId, entity: 'branch', entityId: id, action: 'DELETE', newValue: { name: branch.name } })
+  },
+
   // ── Users (Employees) ──
   async listUsers(tenantId: string) {
     return prisma.user.findMany({
@@ -107,5 +115,13 @@ export const settingsService = {
     const updated = await prisma.user.update({ where: { id }, data: updateData })
     await createAuditLog({ tenantId, userId, entity: 'user', entityId: id, action: 'UPDATE_STATUS', newValue: data })
     return updated
+  },
+
+  async deleteUser(id: string, tenantId: string, userId: string) {
+    const user = await prisma.user.findFirst({ where: { id, tenantId, deletedAt: null } })
+    if (!user) throw new NotFoundError('User')
+
+    await prisma.user.update({ where: { id }, data: { deletedAt: new Date() } })
+    await createAuditLog({ tenantId, userId, entity: 'user', entityId: id, action: 'DELETE', newValue: { name: user.name } })
   },
 }

@@ -5,24 +5,47 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { PageHeader } from '@/components/shared/page-states'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Plus, ArrowLeft, Shield, UserCog, Users } from 'lucide-react'
+import { Plus, ArrowLeft, Shield, UserCog, Users, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 
-const roles = [
-  { name: 'Owner', users: 1, permissions: 'All permissions', badge: 'default' },
-  { name: 'Manager', users: 1, permissions: 'View, Create, Edit', badge: 'secondary' },
-  { name: 'Cashier', users: 1, permissions: 'Sales, Customers, Products', badge: 'outline' },
-  { name: 'Warehouse Staff', users: 1, permissions: 'Inventory, Purchases, Transfers', badge: 'outline' },
-]
+interface RoleItem {
+  id: string
+  name: string
+  permissions: { permission: { id: string; name: string } }[]
+  _count: { users: number }
+}
 
-const users = [
-  { name: 'Owner', email: 'owner@demo.com', role: 'Owner', status: 'Active' },
-  { name: 'Manager', email: 'manager@demo.com', role: 'Manager', status: 'Active' },
-  { name: 'Cashier', email: 'cashier@demo.com', role: 'Cashier', status: 'Active' },
-  { name: 'Warehouse Staff', email: 'warehouse@demo.com', role: 'Warehouse Staff', status: 'Active' },
-]
+interface UserItem {
+  id: string
+  name: string
+  email: string
+  role: { name: string }
+  status: string
+}
 
 export default function RolesSettingsPage() {
+  const [roles, setRoles] = React.useState<RoleItem[]>([])
+  const [users, setUsers] = React.useState<UserItem[]>([])
+
+  React.useEffect(() => {
+    fetch('/api/v1/settings?section=roles')
+      .then((res) => res.json())
+      .then((data) => setRoles(data.data || []))
+    fetch('/api/v1/settings?section=users')
+      .then((res) => res.json())
+      .then((data) => setUsers(data.data || []))
+  }, [])
+
+  function handleDeleteRole(id: string, name: string) {
+    if (!confirm(`Delete role "${name}"?`)) return
+    fetch(`/api/v1/roles?id=${id}`, { method: 'DELETE' })
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to delete')
+        window.location.reload()
+      })
+      .catch(() => alert('Failed to delete role'))
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -46,14 +69,16 @@ export default function RolesSettingsPage() {
         <CardContent>
           <div className="divide-y">
             {roles.map((role) => (
-              <div key={role.name} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+              <div key={role.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
                 <div>
                   <div className="font-medium">{role.name}</div>
-                  <div className="text-sm text-muted-foreground">{role.permissions}</div>
+                  <div className="text-sm text-muted-foreground">{role._count?.users || 0} user(s)</div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-muted-foreground">{role.users} user(s)</span>
-                  <Badge variant={role.badge as any}>{role.name}</Badge>
+                  <Button variant="ghost" size="sm" onClick={() => handleDeleteRole(role.id, role.name)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                  <Badge variant="outline">{role.name}</Badge>
                 </div>
               </div>
             ))}
@@ -72,7 +97,7 @@ export default function RolesSettingsPage() {
         <CardContent>
           <div className="divide-y">
             {users.map((user) => (
-              <div key={user.email} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+              <div key={user.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-full bg-primary/10">
                     <Users className="h-4 w-4 text-primary" />
@@ -83,7 +108,7 @@ export default function RolesSettingsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Badge variant="outline">{user.role}</Badge>
+                  <Badge variant="outline">{user.role?.name || '-'}</Badge>
                   <Badge variant="success">{user.status}</Badge>
                 </div>
               </div>

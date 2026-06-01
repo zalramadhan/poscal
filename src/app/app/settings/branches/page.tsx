@@ -5,16 +5,37 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { PageHeader } from '@/components/shared/page-states'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Plus, ArrowLeft, Building2, MapPin, Phone } from 'lucide-react'
+import { Plus, ArrowLeft, Building2, MapPin, Phone, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 
-const branches = [
-  { name: 'Cabang Pusat', code: 'PST', address: 'Jl. Merdeka No. 123', phone: '021-12345678', status: 'Active' },
-  { name: 'Cabang Surabaya', code: 'SBY', address: 'Jl. Panglima Sudirman No. 45', phone: '031-87654321', status: 'Active' },
-  { name: 'Cabang Jakarta', code: 'JKT', address: 'Jl. Thamrin No. 67', phone: '021-55551234', status: 'Active' },
-]
+interface BranchItem {
+  id: string
+  name: string
+  code: string
+  address: string
+  phone: string
+  status: string
+}
 
 export default function BranchesSettingsPage() {
+  const [branches, setBranches] = React.useState<BranchItem[]>([])
+
+  React.useEffect(() => {
+    fetch('/api/v1/settings?section=branches')
+      .then((res) => res.json())
+      .then((data) => setBranches(data.data || []))
+  }, [])
+
+  function handleDelete(id: string, name: string) {
+    if (!confirm(`Delete branch "${name}"?`)) return
+    fetch(`/api/v1/branches?id=${id}`, { method: 'DELETE' })
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to delete')
+        window.location.reload()
+      })
+      .catch(() => alert('Failed to delete branch'))
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -29,7 +50,7 @@ export default function BranchesSettingsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {branches.map((branch) => (
-          <Card key={branch.code} className="hover:shadow-md transition-all">
+          <Card key={branch.id} className="hover:shadow-md transition-all">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
@@ -41,7 +62,12 @@ export default function BranchesSettingsPage() {
                     <CardDescription>Code: {branch.code}</CardDescription>
                   </div>
                 </div>
-                <Badge variant="success">{branch.status}</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant="success">{branch.status || 'Active'}</Badge>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(branch.id, branch.name)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-2">

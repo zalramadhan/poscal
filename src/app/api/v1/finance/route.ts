@@ -10,6 +10,20 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url)
   const startDate = searchParams.get('startDate') || undefined
   const endDate = searchParams.get('endDate') || undefined
+  const section = searchParams.get('section') || 'summary'
+
+  if (section === 'transactions') {
+    const data = await financeService.list(tenantId, { startDate, endDate, limit: 50 })
+    const transactions = [
+      ...data.income.map((i) => ({
+        id: i.id, type: 'income' as const, description: i.description || '', amount: i.amount.toNumber(), category: i.category || '', date: i.date,
+      })),
+      ...data.expenses.map((e) => ({
+        id: e.id, type: 'expense' as const, description: e.description || '', amount: e.amount.toNumber(), category: e.category || '', date: e.date,
+      })),
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    return successResponse({ transactions, totalIncome: data.totalIncome, totalExpense: data.totalExpense })
+  }
 
   const summary = await financeService.getSummary(tenantId, startDate, endDate)
   return successResponse(summary)

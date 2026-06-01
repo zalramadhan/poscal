@@ -13,10 +13,14 @@ export const financeService = {
     startDate?: string; endDate?: string; sortBy?: string; sortOrder?: 'asc' | 'desc'
   }) {
     const { page = 1, limit = 10, type, sortBy = 'date', sortOrder = 'desc' } = params
-    const whereIncome: Record<string, unknown> = { tenantId }
-    const whereExpense: Record<string, unknown> = { tenantId }
+    const dateFilter: Record<string, unknown> = {}
+    if (params.startDate) dateFilter.gte = new Date(params.startDate)
+    if (params.endDate) dateFilter.lte = new Date(params.endDate)
 
-    const [incomeData, expenseData] = await Promise.all([
+    const whereIncome: Record<string, unknown> = { tenantId, ...(Object.keys(dateFilter).length ? { date: dateFilter } : {}) }
+    const whereExpense: Record<string, unknown> = { tenantId, ...(Object.keys(dateFilter).length ? { date: dateFilter } : {}) }
+
+    const [incomeData, expenseData, incomeAgg, expenseAgg] = await Promise.all([
       type !== 'expense' ? prisma.income.findMany({
         where: whereIncome, skip: (page - 1) * limit, take: limit,
         orderBy: { [sortBy]: sortOrder },
@@ -27,20 +31,27 @@ export const financeService = {
         orderBy: { [sortBy]: sortOrder },
         include: { branch: { select: { id: true, name: true } } },
       }) : [],
+      type !== 'expense' ? prisma.income.aggregate({ where: whereIncome, _sum: { amount: true } }) : { _sum: { amount: null } },
+      type !== 'income' ? prisma.expense.aggregate({ where: whereExpense, _sum: { amount: true } }) : { _sum: { amount: null } },
     ])
 
     return {
       income: incomeData,
       expenses: expenseData,
-      totalIncome: incomeData.reduce((s, i) => s + i.amount.toNumber(), 0),
-      totalExpense: expenseData.reduce((s, e) => s + e.amount.toNumber(), 0),
+      totalIncome: incomeAgg._sum.amount?.toNumber() ?? 0,
+      totalExpense: expenseAgg._sum.amount?.toNumber() ?? 0,
     }
   },
 
   async createIncome(tenantId: string, userId: string, input: IncomeInput) {
+    let branchId = input.branchId
+    if (!branchId) {
+      const defaultBranch = await prisma.branch.findFirst({ where: { tenantId } })
+      branchId = defaultBranch?.id || ''
+    }
     const income = await prisma.income.create({
       data: {
-        tenantId, branchId: input.branchId,
+        tenantId, branchId,
         amount: input.amount, category: input.category,
         description: input.description,
         date: input.date ? new Date(input.date) : new Date(),
@@ -51,9 +62,14 @@ export const financeService = {
   },
 
   async createExpense(tenantId: string, userId: string, input: ExpenseInput) {
+    let branchId = input.branchId
+    if (!branchId) {
+      const defaultBranch = await prisma.branch.findFirst({ where: { tenantId } })
+      branchId = defaultBranch?.id || ''
+    }
     const expense = await prisma.expense.create({
       data: {
-        tenantId, branchId: input.branchId,
+        tenantId, branchId,
         amount: input.amount, category: input.category,
         description: input.description,
         date: input.date ? new Date(input.date) : new Date(),
