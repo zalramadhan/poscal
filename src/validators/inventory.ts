@@ -9,6 +9,9 @@ export const stockInSchema = z.object({
   referenceId: z.string().optional(),
 })
 
+const reasonCodeSchema = z.enum(['WASTAGE', 'BREAKAGE', 'THEFT', 'SHRINKAGE'])
+const reasonCodeWithAdjustmentSchema = z.enum(['WASTAGE', 'BREAKAGE', 'THEFT', 'SHRINKAGE', 'ADJUSTMENT'])
+
 export const stockOutSchema = z.object({
   warehouseId: z.string().min(1, 'Warehouse is required'),
   productId: z.string().min(1, 'Product is required'),
@@ -16,6 +19,8 @@ export const stockOutSchema = z.object({
   notes: z.string().optional(),
   referenceType: z.string().optional(),
   referenceId: z.string().optional(),
+  reason: reasonCodeSchema.optional(),
+  note: z.string().optional(),
 })
 
 export const adjustmentSchema = z.object({
@@ -23,6 +28,8 @@ export const adjustmentSchema = z.object({
   productId: z.string().min(1, 'Product is required'),
   newQuantity: z.number().min(0, 'Quantity must be >= 0'),
   notes: z.string().optional(),
+  reason: reasonCodeWithAdjustmentSchema.optional(),
+  note: z.string().optional(),
 })
 
 export const opnameSchema = z.object({
