@@ -24,6 +24,7 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
 export const POST = withErrorHandler(async (request: NextRequest) => {
   const tenantId = await getTenantId(request)
   const userId = request.headers.get('x-user-id') || 'system'
+  const cashierShiftId = request.headers.get('x-cashier-shift-id')
   const body = await parseBody(request)
   const input = validateSchema(saleSchema, body)
 
@@ -32,6 +33,7 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
     tenantId,
     branchId: input.branchId,
     createdBy: userId,
+    cashierShiftId: cashierShiftId || undefined,
   })
   return successResponse(sale, 'Sale completed', 201)
 })

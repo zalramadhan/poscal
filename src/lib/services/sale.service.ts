@@ -29,6 +29,7 @@ export const saleService = {
     discount?: number
     notes?: string
     createdBy: string
+    cashierShiftId?: string
   }) {
     const invoiceNumber = generateInvoiceNumber()
     const subtotal = params.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -60,8 +61,8 @@ export const saleService = {
       // Note: We omit status since SaleStatus enum doesn't exist in database
       const result = await tx.$queryRawUnsafe<any[]>(
         `INSERT INTO "public"."Sale" 
-          ("tenantId", "branchId", "customerId", "invoiceNumber", "subtotal", "discount", "tax", "total", "notes", "createdBy", "createdAt")
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+          ("tenantId", "branchId", "customerId", "invoiceNumber", "subtotal", "discount", "tax", "total", "notes", "createdBy", "cashierShiftId", "createdAt")
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
          RETURNING *`,
         params.tenantId,
         params.branchId,
@@ -72,7 +73,8 @@ export const saleService = {
         0,
         total,
         params.notes || null,
-        params.createdBy
+        params.createdBy,
+        params.cashierShiftId || null
       )
       const newSale = result[0]
 
