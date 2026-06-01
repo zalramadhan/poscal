@@ -60,46 +60,49 @@ export const dashboardService = {
       LIMIT 5
     `, tenantId)
 
-    // Top products - use raw SQL to avoid enum issues with Prisma groupBy
+    // Top products - get all sale items and sum in JavaScript
     let topProducts: any[] = []
     try {
-      // First check raw values
-      const rawCheck = await prisma.$queryRawUnsafe<any[]>(`
-        SELECT si."productId", si.quantity, si.quantity::text as qty_text, si.quantity::numeric as qty_numeric
-        FROM "public"."SaleItem" si
-        INNER JOIN "public"."Sale" s ON si."saleId" = s.id
-        WHERE s."tenantId" = $1
-        LIMIT 5
-      `, tenantId)
-      console.log('[Dashboard] Raw quantity values:', JSON.stringify(rawCheck))
-      
-      // Now try the SUM
-      const topProductsRaw = await prisma.$queryRawUnsafe<any[]>(`
+      // Get all sale items with their products for completed sales
+      const saleItems = await prisma.$queryRawUnsafe<any[]>(`
         SELECT 
           si."productId", 
           p.name, 
           p.sku,
-          SUM(si.quantity::numeric) as totalSold
+          si.quantity
         FROM "public"."SaleItem" si
         INNER JOIN "public"."Sale" s ON si."saleId" = s.id
         INNER JOIN "public"."Product" p ON si."productId" = p.id
         WHERE s."tenantId" = $1 AND s.status = 'COMPLETED'
-        GROUP BY si."productId", p.name, p.sku
-        ORDER BY totalSold DESC
-        LIMIT 5
       `, tenantId)
-      console.log('[Dashboard] Top products raw with SUM:', JSON.stringify(topProductsRaw))
       
-      topProducts = topProductsRaw.map((p: any) => {
-        console.log('[Dashboard] p.totalSold type:', typeof p.totalSold, 'value:', p.totalSold)
-        return {
-          id: p.productId,
-          productId: p.productId,
-          name: p.name,
-          sku: p.sku,
-          totalSold: Number(p.totalSold) || 0
+      // Sum in JavaScript
+      const productMap = new Map<string, { name: string, sku: string, totalSold: number }>()
+      for (const item of saleItems) {
+        const qty = Number(item.quantity) || 0
+        const existing = productMap.get(item.productId)
+        if (existing) {
+          existing.totalSold += qty
+        } else {
+          productMap.set(item.productId, {
+            name: item.name,
+            sku: item.sku,
+            totalSold: qty
+          })
         }
-      })
+      }
+      
+      topProducts = Array.from(productMap.entries()).map(([productId, data]) => ({
+        id: productId,
+        productId,
+        name: data.name,
+        sku: data.sku,
+        totalSold: data.totalSold
+      }))
+      
+      // Sort by totalSold descending and take top 5
+      topProducts.sort((a, b) => b.totalSold - a.totalSold)
+      topProducts = topProducts.slice(0, 5)
     } catch (err) {
       console.error('[Dashboard] Error getting top products:', err)
     }
