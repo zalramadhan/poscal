@@ -86,7 +86,8 @@ export const inventoryService = {
     warehouseId: string
     productId: string
     quantity: number
-    notes?: string
+    reason?: string
+    note?: string
     referenceType?: string
     referenceId?: string
     createdBy: string
@@ -102,8 +103,8 @@ export const inventoryService = {
 
     const result = await prisma.$queryRawUnsafe<any[]>(
       `INSERT INTO "public"."InventoryMovement" 
-        ("tenantId", "warehouseId", "productId", "movementType", "quantity", "previousStock", "currentStock", "referenceType", "referenceId", "notes", "createdBy", "createdAt") 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW()) 
+        ("tenantId", "warehouseId", "productId", "movementType", "quantity", "previousStock", "currentStock", "referenceType", "referenceId", "notes", "reason", "note", "createdBy", "createdAt") 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW()) 
        RETURNING *`,
       params.tenantId,
       params.warehouseId,
@@ -115,6 +116,8 @@ export const inventoryService = {
       params.referenceType || null,
       params.referenceId || null,
       params.notes || null,
+      params.reason || null,
+      params.note || null,
       params.createdBy
     )
 
@@ -153,27 +156,31 @@ export const inventoryService = {
     warehouseId: string
     productId: string
     newQuantity: number
-    notes?: string
+    reason?: 'WASTAGE' | 'BREAKAGE' | 'THEFT' | 'SHRINKAGE' | 'ADJUSTMENT'
+    note?: string
     createdBy: string
   }) {
     const previousStock = await this.getCurrentStock(params.warehouseId, params.productId)
     const difference = params.newQuantity - previousStock
+    const movementType = params.reason || 'ADJUSTMENT'
 
     const result = await prisma.$queryRawUnsafe<any[]>(
       `INSERT INTO "public"."InventoryMovement" 
-        ("tenantId", "warehouseId", "productId", "movementType", "quantity", "previousStock", "currentStock", "referenceType", "referenceId", "notes", "createdBy", "createdAt") 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW()) 
+        ("tenantId", "warehouseId", "productId", "movementType", "quantity", "previousStock", "currentStock", "referenceType", "referenceId", "notes", "reason", "note", "createdBy", "createdAt") 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW()) 
        RETURNING *`,
       params.tenantId,
       params.warehouseId,
       params.productId,
-      'ADJUSTMENT',
+      movementType,
       difference,
       previousStock,
       params.newQuantity,
       null,
       null,
-      params.notes || null,
+      null,
+      params.reason || null,
+      params.note || null,
       params.createdBy
     )
 
