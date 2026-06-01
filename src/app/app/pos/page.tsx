@@ -80,11 +80,23 @@ export default function POSPage() {
 
   const userId = 'system'
 
+  const [branches, setBranches] = React.useState<any[]>([])
+
   React.useEffect(() => {
     if (warehouses && warehouses.length > 0 && !selectedWarehouse) {
       setSelectedWarehouse(warehouses[0].id)
     }
   }, [warehouses, selectedWarehouse])
+
+  React.useEffect(() => {
+    fetch('/api/v1/settings?section=branches')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.data && data.data.length > 0) {
+          setBranches(data.data)
+        }
+      })
+  }, [])
 
   React.useEffect(() => {
     const checkShift = async () => {
@@ -180,8 +192,10 @@ export default function POSPage() {
     setCheckoutError(null)
 
     try {
-      const body = {
-        branchId: 'default-branch',
+      const selectedWarehouseData = warehouses?.find((w: any) => w.id === selectedWarehouse)
+    const branchId = (selectedWarehouseData as any)?.branchId || branches[0]?.id || 'default-branch'
+    const body = {
+      branchId,
         items: cart.map((item) => ({
           productId: item.id,
           quantity: item.quantity,

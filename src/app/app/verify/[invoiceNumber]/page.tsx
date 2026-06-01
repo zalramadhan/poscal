@@ -16,6 +16,7 @@ export default async function VerifyPage({ params }: VerifyPageProps) {
         include: { product: { select: { name: true, sku: true } } },
       },
       branch: { select: { name: true } },
+      tenant: { select: { name: true } },
     },
   })
 
@@ -93,7 +94,7 @@ export default async function VerifyPage({ params }: VerifyPageProps) {
             </div>
 
             <div className="mt-6 text-center text-sm text-gray-500">
-              <p>Verified by TOKO AMAN POS System</p>
+              <p>Verified by {sale.tenant?.name || 'POS System'}</p>
               <p className="mt-1">This is an official receipt</p>
             </div>
           </div>
