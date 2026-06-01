@@ -3,6 +3,7 @@ import { successResponse, paginatedResponse, errorResponse } from '@/lib/api-res
 import { getTenantId, parseSearchParams, parseBody, withErrorHandler } from '@/lib/api-handler'
 import { saleService } from '@/lib/services/sale.service'
 import { saleRepository } from '@/modules/pos/repositories/sale.repository'
+import { printService } from '@/lib/services/print.service'
 import { saleSchema, saleQuerySchema } from '@/validators/sale'
 import { validateSchema } from '@/lib/api-handler'
 import { prisma } from '@/lib/prisma'
@@ -35,7 +36,11 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
     createdBy: userId,
     cashierShiftId: cashierShiftId || undefined,
   })
-  return successResponse(sale, 'Sale completed', 201)
+
+  const receiptData = await printService.getReceiptData(sale.id, tenantId)
+  const invoiceData = await printService.getInvoiceData(sale.id, tenantId)
+
+  return successResponse({ ...sale, receiptData, invoiceData }, 'Sale completed', 201)
 })
 
 export const DELETE = withErrorHandler(async (request: NextRequest) => {
