@@ -24,6 +24,7 @@ import {
   Package,
   Warehouse,
 } from 'lucide-react'
+import { PrintDialog } from './print-dialog'
 import type { Product } from '@/types'
 
 interface CartItem {
@@ -72,6 +73,10 @@ export default function POSPage() {
   const [showCloseShift, setShowCloseShift] = React.useState(false)
   const [openingCash, setOpeningCash] = React.useState('')
   const [closingCash, setClosingCash] = React.useState('')
+  const [printDialogOpen, setPrintDialogOpen] = React.useState(false)
+  const [receiptData, setReceiptData] = React.useState<any>(null)
+  const [invoiceData, setInvoiceData] = React.useState<any>(null)
+  const [completedSaleId, setCompletedSaleId] = React.useState<string | null>(null)
 
   const userId = 'system'
 
@@ -203,6 +208,12 @@ export default function POSPage() {
       const json = await res.json()
       if (!json.success) throw new Error(json.message || 'Checkout failed')
 
+      if (json.data?.id) {
+        setCompletedSaleId(json.data.id)
+        setReceiptData(json.data.receiptData)
+        setInvoiceData(json.data.invoiceData)
+        setPrintDialogOpen(true)
+      }
       setCart([])
       router.push('/app/pos/history')
       router.refresh()
@@ -494,6 +505,16 @@ export default function POSPage() {
           </div>
         </div>
       </div>
+
+      {printDialogOpen && completedSaleId && (
+        <PrintDialog
+          open={printDialogOpen}
+          onOpenChange={setPrintDialogOpen}
+          saleId={completedSaleId}
+          receiptData={receiptData}
+          invoiceData={invoiceData}
+        />
+      )}
     </>
   )
 }
