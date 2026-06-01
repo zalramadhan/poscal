@@ -1,10 +1,11 @@
 import { NextRequest } from 'next/server'
-import { successResponse, paginatedResponse } from '@/lib/api-response'
+import { successResponse, paginatedResponse, errorResponse } from '@/lib/api-response'
 import { getTenantId, parseSearchParams, parseBody, withErrorHandler } from '@/lib/api-handler'
 import { saleService } from '@/lib/services/sale.service'
 import { saleRepository } from '@/modules/pos/repositories/sale.repository'
 import { saleSchema, saleQuerySchema } from '@/validators/sale'
 import { validateSchema } from '@/lib/api-handler'
+import { prisma } from '@/lib/prisma'
 import type { SaleStatus } from '../../../../../generated/prisma/client'
 
 export const GET = withErrorHandler(async (request: NextRequest) => {
@@ -33,4 +34,29 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
     createdBy: userId,
   })
   return successResponse(sale, 'Sale completed', 201)
+})
+
+export const DELETE = withErrorHandler(async (request: NextRequest) => {
+  const tenantId = await getTenantId(request)
+  const { searchParams } = new URL(request.url)
+  const invoiceNumber = searchParams.get('invoice')
+
+  if (!invoiceNumber) {
+    return errorResponse('Invoice number required', 400)
+  }
+
+  const sale = await prisma.sale.findFirst({
+    where: { invoiceNumber, tenantId },
+    include: { items: true, payments: true }
+  })
+
+  if (!sale) {
+    return errorResponse('Sale not found', 404)
+  }
+
+  await prisma.saleItem.deleteMany({ where: { saleId: sale.id } })
+  await prisma.payment.deleteMany({ where: { saleId: sale.id } })
+  await prisma.sale.delete({ where: { id: sale.id } })
+
+  return successResponse({ deleted: invoiceNumber })
 })
