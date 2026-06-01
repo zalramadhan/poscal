@@ -21,6 +21,7 @@ import {
   CreditCard,
   Smartphone,
   Package,
+  Warehouse,
 } from 'lucide-react'
 import type { Product } from '@/types'
 
@@ -31,6 +32,21 @@ interface CartItem {
   quantity: number
 }
 
+interface ProductWithStock extends Product {
+  stock?: {
+    balance: number
+    reserved: number
+    available: number
+  }
+  minStock?: number
+  maxStock?: number
+}
+
+interface Warehouse {
+  id: string
+  name: string
+}
+
 const paymentMethods = [
   { id: 'cash', name: 'Cash', icon: DollarSign },
   { id: 'debit', name: 'Debit Card', icon: CreditCard },
@@ -39,12 +55,23 @@ const paymentMethods = [
 
 export default function POSPage() {
   const router = useRouter()
-  const { data: products, loading, error, refetch } = useFetch<Product[]>('/api/v1/products')
+  const [selectedWarehouse, setSelectedWarehouse] = React.useState<string>('')
+  const { data: warehouses } = useFetch<Warehouse[]>('/api/v1/warehouses')
+  const productUrl = selectedWarehouse
+    ? `/api/v1/products?includeStock=true&warehouseId=${selectedWarehouse}`
+    : null
+  const { data: products, loading, error, refetch } = useFetch<ProductWithStock[]>(productUrl)
   const [cart, setCart] = React.useState<CartItem[]>([])
   const [search, setSearch] = React.useState('')
   const [selectedPayment, setSelectedPayment] = React.useState('cash')
   const [checkoutLoading, setCheckoutLoading] = React.useState(false)
   const [checkoutError, setCheckoutError] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    if (warehouses && warehouses.length > 0 && !selectedWarehouse) {
+      setSelectedWarehouse(warehouses[0].id)
+    }
+  }, [warehouses, selectedWarehouse])
 
   const productList = Array.isArray(products) ? products : []
   const filteredProducts = productList.filter(
@@ -56,7 +83,8 @@ export default function POSPage() {
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
-  function addToCart(product: Product) {
+  function addToCart(product: ProductWithStock) {
+    if (product.stock && product.stock.available <= 0) return
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id)
       if (existing) {
@@ -130,13 +158,29 @@ export default function POSPage() {
     <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-8rem)]">
       {/* Left - Product Grid */}
       <div className="flex-1 flex flex-col">
-        <div className="mb-4">
-          <Input
-            placeholder="Search products by name, SKU or category..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full"
-          />
+        <div className="mb-4 flex gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search products by name, SKU or category..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 w-full"
+            />
+          </div>
+          <div className="relative">
+            <Warehouse className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <select
+              value={selectedWarehouse}
+              onChange={(e) => setSelectedWarehouse(e.target.value)}
+              className="pl-9 pr-8 h-10 rounded-md border border-input bg-background text-sm appearance-none cursor-pointer"
+            >
+              {!selectedWarehouse && <option value="">Select warehouse</option>}
+              {warehouses?.map((w) => (
+                <option key={w.id} value={w.id}>{w.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto">
@@ -149,43 +193,55 @@ export default function POSPage() {
                 </p>
               </div>
             ) : (
-              filteredProducts.map((product) => (
-                <button
-                  key={product.id}
-                  onClick={() => addToCart(product)}
-                  className="p-3 rounded-lg border border-border bg-surface hover:border-primary hover:shadow-sm transition-all text-left flex flex-col"
-                >
-                  <div className="flex items-start gap-3">
-                    {/* Product image or placeholder */}
-                    {product.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="h-10 w-10 rounded-md object-cover shrink-0"
-                      />
-                    ) : (
-                      <div className="h-10 w-10 rounded-md bg-primary/5 shrink-0 flex items-center justify-center">
-                        <Package className="h-5 w-5 text-primary/60" />
+              filteredProducts.map((product) => {
+                const isOutOfStock = product.stock && product.stock.available <= 0
+                const isLowStock = product.stock && product.minStock && product.stock.available < product.minStock && product.stock.available > 0
+                return (
+                  <button
+                    key={product.id}
+                    onClick={() => addToCart(product)}
+                    disabled={isOutOfStock}
+                    className={`p-3 rounded-lg border bg-surface transition-all text-left flex flex-col ${
+                      isOutOfStock
+                        ? 'opacity-50 cursor-not-allowed border-muted'
+                        : 'hover:border-primary hover:shadow-sm border-border'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      {product.image ? (
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="h-10 w-10 rounded-md object-cover shrink-0"
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-md bg-primary/5 shrink-0 flex items-center justify-center">
+                          <Package className="h-5 w-5 text-primary/60" />
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium leading-tight line-clamp-2 break-words">
+                          {product.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">SKU: {product.sku}</p>
+                        <p className="text-sm font-semibold text-primary mt-1">
+                          {formatCurrency(product.sellingPrice)}
+                        </p>
+                        {product.stock && (
+                          <p className={`text-xs mt-1 ${isOutOfStock ? 'text-danger' : isLowStock ? 'text-warning' : 'text-muted-foreground'}`}>
+                            {isOutOfStock ? 'Out of stock' : isLowStock ? `Only ${product.stock.available} left` : `${product.stock.available} available`}
+                          </p>
+                        )}
                       </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium leading-tight line-clamp-2 break-words">
-                        {product.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">SKU: {product.sku}</p>
-                      <p className="text-sm font-semibold text-primary mt-1">
-                        {formatCurrency(product.sellingPrice)}
-                      </p>
                     </div>
-                  </div>
-                  {product.category && (
-                    <Badge variant="outline" className="mt-2 self-start text-[10px]">
-                      {product.category.name}
-                    </Badge>
-                  )}
-                </button>
-              ))
+                    {product.category && (
+                      <Badge variant="outline" className="mt-2 self-start text-[10px]">
+                        {product.category.name}
+                      </Badge>
+                    )}
+                  </button>
+                )
+              })
             )}
           </div>
         </div>
