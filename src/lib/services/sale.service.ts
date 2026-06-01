@@ -61,8 +61,8 @@ export const saleService = {
       // Note: We omit status since SaleStatus enum doesn't exist in database
       const result = await tx.$queryRawUnsafe<any[]>(
         `INSERT INTO "public"."Sale" 
-          ("tenantId", "branchId", "customerId", "invoiceNumber", "subtotal", "discount", "tax", "total", "notes", "createdBy", "cashierShiftId", "createdAt")
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
+          (id, "tenantId", "branchId", "customerId", "invoiceNumber", "subtotal", "discount", "tax", "total", "notes", "status", "createdBy", "cashierShiftId", "createdAt")
+         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, 'COMPLETED', $10, $11, NOW())
          RETURNING *`,
         params.tenantId,
         params.branchId,
@@ -82,8 +82,8 @@ export const saleService = {
       for (const item of params.items) {
         await tx.$executeRawUnsafe(
           `INSERT INTO "public"."SaleItem" 
-            ("saleId", "productId", "quantity", "price", "discount", "subtotal", "createdAt")
-           VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+            (id, "saleId", "productId", "quantity", "price", "discount", "subtotal", "createdAt")
+           VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW())`,
           newSale.id,
           item.productId,
           item.quantity,
@@ -97,8 +97,8 @@ export const saleService = {
       for (const p of params.payments) {
         await tx.$executeRawUnsafe(
           `INSERT INTO "public"."Payment" 
-            ("saleId", "paymentMethodId", "amount", "createdAt")
-           VALUES ($1, $2, $3, NOW())`,
+            (id, "saleId", "paymentMethodId", "amount", "createdAt")
+           VALUES (gen_random_uuid(), $1, $2, $3, NOW())`,
           newSale.id,
           p.paymentMethodId,
           p.amount

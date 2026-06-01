@@ -35,8 +35,8 @@ export const inventoryService = {
 
     const result = await prisma.$queryRawUnsafe<any[]>(
       `INSERT INTO "public"."InventoryMovement" 
-        ("tenantId", "warehouseId", "productId", "movementType", "quantity", "previousStock", "currentStock", "referenceType", "referenceId", "notes", "createdBy", "createdAt") 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW()) 
+        (id, "tenantId", "warehouseId", "productId", "movementType", "quantity", "previousStock", "currentStock", "referenceType", "referenceId", "notes", "createdBy", "createdAt") 
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW()) 
        RETURNING *`,
       params.tenantId,
       params.warehouseId,
@@ -103,8 +103,8 @@ export const inventoryService = {
 
     const result = await prisma.$queryRawUnsafe<any[]>(
       `INSERT INTO "public"."InventoryMovement" 
-        ("tenantId", "warehouseId", "productId", "movementType", "quantity", "previousStock", "currentStock", "referenceType", "referenceId", "notes", "reason", "note", "createdBy", "createdAt") 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW()) 
+        (id, "tenantId", "warehouseId", "productId", "movementType", "quantity", "previousStock", "currentStock", "referenceType", "referenceId", "notes", "reason", "note", "createdBy", "createdAt") 
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW()) 
        RETURNING *`,
       params.tenantId,
       params.warehouseId,
@@ -166,8 +166,8 @@ export const inventoryService = {
 
     const result = await prisma.$queryRawUnsafe<any[]>(
       `INSERT INTO "public"."InventoryMovement" 
-        ("tenantId", "warehouseId", "productId", "movementType", "quantity", "previousStock", "currentStock", "referenceType", "referenceId", "notes", "reason", "note", "createdBy", "createdAt") 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW()) 
+        (id, "tenantId", "warehouseId", "productId", "movementType", "quantity", "previousStock", "currentStock", "referenceType", "referenceId", "notes", "reason", "note", "createdBy", "createdAt") 
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW()) 
        RETURNING *`,
       params.tenantId,
       params.warehouseId,

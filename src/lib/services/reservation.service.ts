@@ -109,8 +109,8 @@ export const reservationService = {
 
       const movement = await prisma.$queryRawUnsafe<any>(
         `INSERT INTO "public"."InventoryMovement" 
-          ("tenantId", "warehouseId", "productId", "movementType", "quantity", "previousStock", "currentStock", "referenceType", "referenceId", "createdBy", "createdAt") 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW()) 
+          (id, "tenantId", "warehouseId", "productId", "movementType", "quantity", "previousStock", "currentStock", "referenceType", "referenceId", "createdBy", "createdAt") 
+         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW()) 
          RETURNING *`,
         reservation.tenantId,
         reservation.warehouseId,
