@@ -1,9 +1,7 @@
 // ──────────────────────────────────────────────────────
 // POS AI - Database Push Script (for Vercel build)
 // ──────────────────────────────────────────────────────
-// Transforms Supabase pooler connection to direct connection
-// for prisma db push, because the schema engine doesn't
-// work with PgBouncer (prepared statement conflict).
+// Uses direct connection for Prisma schema push
 // ──────────────────────────────────────────────────────
 
 const { execSync } = require("child_process");
@@ -11,23 +9,15 @@ const { execSync } = require("child_process");
 function getDirectUrl(poolerUrl) {
   try {
     const url = new URL(poolerUrl);
-
-    // Change port from pooler (6543) to direct (5432)
     if (url.port === "6543") {
       url.port = "5432";
     }
-
-    // Remove pgbouncer query parameter
     const params = new URLSearchParams(url.search);
     params.delete("pgbouncer");
     url.search = params.toString();
-
     return url.toString();
   } catch {
-    // Fallback: simple string replacement
-    return poolerUrl
-      .replace(":6543/", ":5432/")
-      .replace(/[?&]pgbouncer=true/g, "");
+    return poolerUrl.replace(":6543/", ":5432/").replace(/[?&]pgbouncer=true/g, "");
   }
 }
 
@@ -38,8 +28,11 @@ if (!originalUrl) {
   process.exit(1);
 }
 
-const directUrl = getDirectUrl(originalUrl);
-process.env.DATABASE_URL = directUrl;
+// Only transform if it looks like a pooler URL
+if (originalUrl.includes(":6543") || originalUrl.includes("pgbouncer")) {
+  const directUrl = getDirectUrl(originalUrl);
+  process.env.DATABASE_URL = directUrl;
+  console.log("🔧 Using direct database connection (bypassing pooler)");
+}
 
-console.log("🔧 Running prisma db push with direct connection...");
 execSync("npx prisma db push --accept-data-loss", { stdio: "inherit" });
