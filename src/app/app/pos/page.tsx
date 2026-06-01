@@ -42,7 +42,7 @@ export default function POSPage() {
   const { data: products, loading, error, refetch } = useFetch<Product[]>('/api/v1/products')
   const [cart, setCart] = React.useState<CartItem[]>([])
   const [search, setSearch] = React.useState('')
-  const [selectedPayment, setSelectedPayment] = React.useState('1')
+  const [selectedPayment, setSelectedPayment] = React.useState('cash')
   const [checkoutLoading, setCheckoutLoading] = React.useState(false)
   const [checkoutError, setCheckoutError] = React.useState<string | null>(null)
 
@@ -111,6 +111,7 @@ export default function POSPage() {
         body: JSON.stringify(body),
       })
       const json = await res.json()
+      console.log('[POS] checkout response:', json)
       if (!json.success) throw new Error(json.message || 'Checkout failed')
 
       // Clear cart and navigate to sales history
