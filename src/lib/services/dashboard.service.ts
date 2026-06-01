@@ -68,7 +68,7 @@ export const dashboardService = {
           si."productId", 
           p.name, 
           p.sku,
-          SUM(si.quantity) as totalSold
+          SUM(si.quantity::numeric) as totalSold
         FROM "public"."SaleItem" si
         INNER JOIN "public"."Sale" s ON si."saleId" = s.id
         INNER JOIN "public"."Product" p ON si."productId" = p.id
