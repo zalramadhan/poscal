@@ -5,7 +5,7 @@ import { inventoryService } from '@/lib/services/inventory.service'
 import { inventoryRepository } from '@/modules/inventory/repositories/inventory.repository'
 import { stockInSchema, stockOutSchema, adjustmentSchema, inventoryQuerySchema } from '@/validators/inventory'
 import { validateSchema } from '@/lib/api-handler'
-import type { InventoryMovementType } from '../../../../../generated/prisma/client'
+import type { InventoryMovementType } from '@prisma/client'
 
 export const GET = withErrorHandler(async (request: NextRequest) => {
   const tenantId = await getTenantId(request)

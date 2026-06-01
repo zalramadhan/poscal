@@ -3,7 +3,7 @@
 // ──────────────────────────────────────────────────────
 
 import { prisma } from '@/lib/prisma'
-import type { Prisma, TransferStatus } from '../../../../generated/prisma/client'
+import type { Prisma, TransferStatus } from '@prisma/client'
 
 export const transferRepository = {
   async findById(id: string, tenantId: string) {

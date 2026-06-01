@@ -3,7 +3,7 @@
 // ──────────────────────────────────────────────────────
 
 import { prisma } from '@/lib/prisma'
-import type { Prisma, InventoryMovementType, StockOpnameStatus } from '../../../../generated/prisma/client'
+import type { Prisma, InventoryMovementType, StockOpnameStatus } from '@prisma/client'
 
 export const inventoryRepository = {
   // ── Balance ──

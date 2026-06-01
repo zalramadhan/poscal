@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 import type { RoleInput, BranchInput, TenantSettingsInput } from '@/validators/settings'
 import { createAuditLog } from '@/lib/audit'
 import { AppError, NotFoundError } from '@/lib/errors'
-import type { Prisma, UserStatus, User } from '../../../generated/prisma/client'
+import type { Prisma, UserStatus, User } from '@prisma/client'
 
 export const settingsService = {
   // ── Tenant ──

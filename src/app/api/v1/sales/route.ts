@@ -6,7 +6,7 @@ import { saleRepository } from '@/modules/pos/repositories/sale.repository'
 import { saleSchema, saleQuerySchema } from '@/validators/sale'
 import { validateSchema } from '@/lib/api-handler'
 import { prisma } from '@/lib/prisma'
-import type { SaleStatus } from '../../../../../generated/prisma/client'
+import type { SaleStatus } from '@prisma/client'
 
 export const GET = withErrorHandler(async (request: NextRequest) => {
   const tenantId = await getTenantId(request)

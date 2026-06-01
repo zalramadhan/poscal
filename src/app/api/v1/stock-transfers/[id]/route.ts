@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 import { successResponse } from '@/lib/api-response'
 import { getTenantId, withErrorHandler } from '@/lib/api-handler'
 import { prisma } from '@/lib/prisma'
-import type { TransferStatus } from '../../../../../../generated/prisma/client'
+import type { TransferStatus } from '@prisma/client'
 import { transferService } from '@/lib/services/warehouse.service'
 
 export const GET = withErrorHandler(async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {

@@ -3,7 +3,7 @@
 // ──────────────────────────────────────────────────────
 
 import { prisma } from '@/lib/prisma'
-import type { Prisma, SaleStatus } from '../../../../generated/prisma/client'
+import type { Prisma, SaleStatus } from '@prisma/client'
 
 const saleInclude = {
   items: {

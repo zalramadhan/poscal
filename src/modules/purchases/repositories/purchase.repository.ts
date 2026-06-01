@@ -3,7 +3,7 @@
 // ──────────────────────────────────────────────────────
 
 import { prisma } from '@/lib/prisma'
-import type { Prisma, PurchaseOrderStatus } from '../../../../generated/prisma/client'
+import type { Prisma, PurchaseOrderStatus } from '@prisma/client'
 
 export const purchaseRepository = {
   async findById(id: string, tenantId: string) {
