@@ -64,7 +64,7 @@ export default function POSPage() {
           item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item,
         )
       }
-      return [...prev, { id: product.id, name: product.name, price: product.sellingPrice, quantity: 1 }]
+      return [...prev, { id: product.id, name: product.name, price: Number(product.sellingPrice), quantity: 1 }]
     })
   }
 
