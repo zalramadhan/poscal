@@ -76,6 +76,33 @@ export const saleService = {
       )
       const newSale = result[0]
 
+      // Insert sale items using raw SQL
+      for (const item of params.items) {
+        await tx.$executeRawUnsafe(
+          `INSERT INTO "public"."SaleItem" 
+            ("saleId", "productId", "quantity", "price", "discount", "subtotal", "createdAt")
+           VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+          newSale.id,
+          item.productId,
+          item.quantity,
+          item.price,
+          0,
+          item.price * item.quantity
+        )
+      }
+
+      // Insert payments using raw SQL
+      for (const p of params.payments) {
+        await tx.$executeRawUnsafe(
+          `INSERT INTO "public"."Payment" 
+            ("saleId", "paymentMethodId", "amount", "createdAt")
+           VALUES ($1, $2, $3, NOW())`,
+          newSale.id,
+          p.paymentMethodId,
+          p.amount
+        )
+      }
+
       // Deduct stock using raw SQL to avoid enum issues
       for (const item of params.items) {
         const balance = await tx.inventoryBalance.findUnique({

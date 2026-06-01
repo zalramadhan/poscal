@@ -24,9 +24,7 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
   const tenantId = await getTenantId(request)
   const userId = request.headers.get('x-user-id') || 'system'
   const body = await parseBody(request)
-  console.log('[Sales POST] body:', JSON.stringify(body))
   const input = validateSchema(saleSchema, body)
-  console.log('[Sales POST] input:', JSON.stringify(input))
 
   const sale = await saleService.create({
     ...input,
@@ -34,6 +32,5 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
     branchId: input.branchId,
     createdBy: userId,
   })
-  console.log('[Sales POST] sale created:', sale.id)
   return successResponse(sale, 'Sale completed', 201)
 })
