@@ -18,19 +18,17 @@ interface ReceiptTemplateProps {
     cashReceived: number
     change: number
     verifyUrl: string
+    businessName?: string
+    businessPhone?: string
   }
-  businessName?: string
-  businessAddress?: string
-  businessPhone?: string
 }
 
-export function ReceiptTemplate({ data, businessName = 'TOKO AMAN', businessAddress = '', businessPhone = '' }: ReceiptTemplateProps) {
+export function ReceiptTemplate({ data }: ReceiptTemplateProps) {
   return (
     <div style={{ width: '280px', fontFamily: 'monospace', fontSize: '12px', padding: '8px' }}>
       <div style={{ textAlign: 'center', borderBottom: '1px dashed #000', paddingBottom: '8px', marginBottom: '8px' }}>
-        <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{businessName}</div>
-        {businessAddress && <div>{businessAddress}</div>}
-        {businessPhone && <div>Telp: {businessPhone}</div>}
+        <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{data.businessName || 'TOKO AMAN'}</div>
+        {data.businessPhone && <div>Telp: {data.businessPhone}</div>}
       </div>
 
       <div style={{ borderBottom: '1px dashed #000', paddingBottom: '8px', marginBottom: '8px' }}>

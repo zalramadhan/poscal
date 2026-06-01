@@ -23,6 +23,10 @@ interface ReceiptData {
   cashReceived: number
   change: number
   verifyUrl: string
+  businessName?: string
+  businessAddress?: string
+  businessPhone?: string
+  businessEmail?: string
 }
 
 interface InvoiceData extends ReceiptData {
@@ -47,6 +51,7 @@ export const printService = {
         payments: { include: { paymentMethod: true } },
         branch: true,
         customer: true,
+        tenant: true,
       },
     })
 
@@ -80,6 +85,9 @@ export const printService = {
       cashReceived: payment?.amount.toNumber() || sale.total.toNumber(),
       change: payment ? payment.amount.toNumber() - sale.total.toNumber() : 0,
       verifyUrl,
+      businessName: sale.tenant.name,
+      businessPhone: sale.tenant.phone || undefined,
+      businessEmail: sale.tenant.email || undefined,
     }
   },
 
