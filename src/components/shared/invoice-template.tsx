@@ -24,28 +24,22 @@ interface InvoiceTemplateProps {
     address?: string
     paymentDetails: { method: string; amount: number; reference?: string }[]
     footerText?: string
+    businessName?: string
+    businessAddress?: string
+    businessPhone?: string
+    businessEmail?: string
   }
-  businessName?: string
-  businessAddress?: string
-  businessPhone?: string
-  businessEmail?: string
 }
 
-export function InvoiceTemplate({
-  data,
-  businessName = 'TOKO AMAN',
-  businessAddress = '',
-  businessPhone = '',
-  businessEmail = ''
-}: InvoiceTemplateProps) {
+export function InvoiceTemplate({ data }: InvoiceTemplateProps) {
   return (
     <div style={{ width: '210mm', fontFamily: 'Arial, sans-serif', fontSize: '12px', padding: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', borderBottom: '2px solid #000', paddingBottom: '20px' }}>
         <div>
-          <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{businessName}</div>
-          {businessAddress && <div>{businessAddress}</div>}
-          {businessPhone && <div>Telp: {businessPhone}</div>}
-          {businessEmail && <div>Email: {businessEmail}</div>}
+          <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{data.businessName || 'POS System'}</div>
+          {data.businessAddress && <div>{data.businessAddress}</div>}
+          {data.businessPhone && <div>Telp: {data.businessPhone}</div>}
+          {data.businessEmail && <div>Email: {data.businessEmail}</div>}
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: '20px', fontWeight: 'bold' }}>INVOICE</div>

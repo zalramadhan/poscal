@@ -38,30 +38,6 @@ export default function SettingsPage() {
           </Link>
         ))}
       </div>
-
-      {/* Quick Settings Card */}
-      <Card className="max-w-2xl">
-        <CardHeader>
-          <CardTitle>Company Information</CardTitle>
-          <CardDescription>Update your business details</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Business Name" defaultValue="PT Maju Jaya" />
-            <Input label="Email" type="email" defaultValue="info@majujaya.com" />
-            <Input label="Phone" defaultValue="021-12345678" />
-            <Input label="Plan" defaultValue="Starter" disabled />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-foreground block mb-1.5">Address</label>
-            <textarea className="flex w-full rounded-md border border-input bg-surface px-3 py-2 text-sm min-h-[80px]" defaultValue="Jl. Merdeka No. 123, Jakarta Pusat" />
-          </div>
-          <div className="flex items-center justify-between pt-2">
-            <Badge variant="success">Active Subscription</Badge>
-            <Button><Save className="h-4 w-4 mr-2" />Save Changes</Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }

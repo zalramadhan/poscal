@@ -86,6 +86,7 @@ export const printService = {
       change: payment ? payment.amount.toNumber() - sale.total.toNumber() : 0,
       verifyUrl,
       businessName: sale.tenant.name,
+      businessAddress: (sale.tenant as any).address || undefined,
       businessPhone: sale.tenant.phone || undefined,
       businessEmail: sale.tenant.email || undefined,
     }
