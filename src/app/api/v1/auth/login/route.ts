@@ -17,7 +17,7 @@ export const POST = async (request: NextRequest) => {
       headers: request.headers,
     } as any) as any
 
-    if (!result.user) {
+    if (!result?.user) {
       return errorResponse('Email atau password salah', 401)
     }
 
@@ -28,13 +28,13 @@ export const POST = async (request: NextRequest) => {
 
     return successResponse({
       user,
-      session: { token: result.token },
+      session: { token: result.token || 'session' },
     }, 'Login successful')
   } catch (error) {
+    console.error('[Login Error]', error)
     if (error instanceof BetterAuthError) {
       return errorResponse('Email atau password salah', 401)
     }
-    console.error('[Login Error]', error)
     return errorResponse('Internal server error', 500)
   }
 }

@@ -13,7 +13,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState('')
   const [form, setForm] = React.useState({
-    name: '',
+    businessName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -31,9 +31,28 @@ export default function RegisterPage() {
     }
 
     try {
-      router.push('/auth/login')
+      const res = await fetch('/api/v1/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.businessName,
+          email: form.email,
+          password: form.password,
+          businessName: form.businessName,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!data.success) {
+        setError(data.message || 'Registration failed')
+        setLoading(false)
+        return
+      }
+
+      router.push('/auth/login?registered=true')
     } catch {
-      setError('Registration failed. Please try again.')
+      setError('Connection error. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -61,8 +80,8 @@ export default function RegisterPage() {
             <Input
               label="Business Name"
               placeholder="Your business name"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              value={form.businessName}
+              onChange={(e) => setForm({ ...form, businessName: e.target.value })}
               required
             />
             <Input

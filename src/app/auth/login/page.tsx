@@ -21,10 +21,23 @@ export default function LoginPage() {
     setError('')
 
     try {
-      // For development without Better Auth server, simulate login
+      const res = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+
+      const data = await res.json()
+
+      if (!data.success) {
+        setError(data.message || 'Login failed')
+        setLoading(false)
+        return
+      }
+
       router.push('/app/dashboard')
     } catch {
-      setError('Invalid email or password')
+      setError('Connection error. Please try again.')
     } finally {
       setLoading(false)
     }
