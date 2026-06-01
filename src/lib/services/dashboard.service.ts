@@ -61,7 +61,8 @@ export const dashboardService = {
     `, tenantId)
 
     // Top products using raw SQL
-    const topProducts = await prisma.$queryRawUnsafe<any[]>(`
+    console.log('[Dashboard] tenantId:', tenantId)
+    const topProductsRaw = await prisma.$queryRawUnsafe<any[]>(`
       SELECT p.id, si."productId", CAST(SUM(si.quantity) AS integer) as totalSold, p.name, p.sku
       FROM "public"."SaleItem" si
       JOIN "public"."Sale" s ON si."saleId" = s.id
@@ -71,6 +72,15 @@ export const dashboardService = {
       ORDER BY totalSold DESC
       LIMIT 5
     `, tenantId)
+    console.log('[Dashboard] topProductsRaw:', JSON.stringify(topProductsRaw))
+    
+    const topProducts = topProductsRaw.map(p => ({
+      id: p.id,
+      productId: p.productId,
+      name: p.name,
+      sku: p.sku,
+      totalSold: Number(p.totalSold)
+    }))
 
     return {
       revenueToday,
