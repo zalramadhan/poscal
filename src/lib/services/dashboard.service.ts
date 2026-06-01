@@ -60,26 +60,29 @@ export const dashboardService = {
       LIMIT 5
     `, tenantId)
 
-    // Top products using raw SQL
-    console.log('[Dashboard] tenantId:', tenantId)
+    // Top products - use raw SQL to avoid enum issues with Prisma groupBy
     const topProductsRaw = await prisma.$queryRawUnsafe<any[]>(`
-      SELECT p.id, si."productId", CAST(SUM(si.quantity) AS integer) as totalSold, p.name, p.sku
+      SELECT 
+        si."productId", 
+        p.id as "productId",
+        p.name, 
+        p.sku,
+        CAST(SUM(CAST(si.quantity AS numeric)) AS integer) as totalSold
       FROM "public"."SaleItem" si
-      JOIN "public"."Sale" s ON si."saleId" = s.id
-      JOIN "public"."Product" p ON si."productId" = p.id
+      INNER JOIN "public"."Sale" s ON si."saleId" = s.id
+      INNER JOIN "public"."Product" p ON si."productId" = p.id
       WHERE s."tenantId" = $1 AND s.status = 'COMPLETED'
-      GROUP BY p.id, si."productId", p.name, p.sku
+      GROUP BY si."productId", p.id, p.name, p.sku
       ORDER BY totalSold DESC
       LIMIT 5
     `, tenantId)
-    console.log('[Dashboard] topProductsRaw:', JSON.stringify(topProductsRaw))
     
-    const topProducts = topProductsRaw.map(p => ({
-      id: p.id,
+    const topProducts = topProductsRaw.map((p: any) => ({
+      id: p.productId,
       productId: p.productId,
       name: p.name,
       sku: p.sku,
-      totalSold: Number(p.totalSold)
+      totalSold: parseInt(p.totalSold, 10) || 0
     }))
 
     return {
