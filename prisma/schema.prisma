@@ -85,6 +85,12 @@ enum KitchenOrderStatus {
   CANCELLED
 }
 
+enum ShiftStatus {
+  OPEN
+  PENDING_APPROVAL
+  CLOSED
+}
+
 enum ReservationStatus {
   ACTIVE
   RELEASED
@@ -131,6 +137,7 @@ model Tenant {
   menuCategories  MenuCategory[]
   menus           Menu[]
   kitchenOrders   KitchenOrder[]
+  cashierShifts   CashierShift[]
 }
 
 // ──────────────────────────────────────────────────────────
@@ -199,6 +206,29 @@ model User {
 
   @@index([tenantId])
   @@index([email])
+}
+
+model CashierShift {
+  id            String      @id @default(cuid())
+  tenantId      String
+  userId        String
+  branchId      String
+  status        ShiftStatus @default(OPEN)
+  openingCash   Decimal     @db.Decimal(18, 2)
+  closingCash   Decimal?    @db.Decimal(18, 2)
+  expectedCash  Decimal?    @db.Decimal(18, 2)
+  variance      Decimal?    @db.Decimal(18, 2)
+  openedAt      DateTime    @default(now())
+  closedAt      DateTime?
+  closedBy      String?
+  notes         String?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  sales  Sale[]
+
+  @@index([tenantId, userId])
+  @@index([tenantId, status])
+  @@index([branchId])
 }
 
 // ──────────────────────────────────────────────────────────
@@ -528,6 +558,8 @@ model Sale {
   notes         String?
   status        SaleStatus @default(DRAFT)
   createdBy     String
+  cashierShiftId String?
+  cashierShift   CashierShift? @relation(fields: [cashierShiftId], references: [id])
 
   tenant   Tenant    @relation(fields: [tenantId], references: [id])
   branch   Branch    @relation(fields: [branchId], references: [id])
