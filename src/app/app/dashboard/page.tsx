@@ -1,8 +1,10 @@
 'use client'
 
 import * as React from 'react'
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PageHeader, LoadingState } from '@/components/shared/page-states'
+import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import {
   DollarSign,
@@ -12,6 +14,8 @@ import {
   TrendingUp,
   Users,
   ArrowUpRight,
+  XCircle,
+  AlertCircle,
 } from 'lucide-react'
 
 function StatCard({
@@ -40,6 +44,12 @@ function StatCard({
   )
 }
 
+interface LowStockData {
+  critical: any[]
+  warning: any[]
+  all: any[]
+}
+
 export default function DashboardPage() {
   const [loading, setLoading] = React.useState(true)
   const [summary, setSummary] = React.useState<any>({
@@ -51,6 +61,7 @@ export default function DashboardPage() {
     recentSales: [],
     topProducts: [],
   })
+  const [lowStock, setLowStock] = React.useState<LowStockData>({ critical: [], warning: [], all: [] })
 
   React.useEffect(() => {
     fetchDashboard()
@@ -58,10 +69,19 @@ export default function DashboardPage() {
 
   async function fetchDashboard() {
     try {
-      const res = await fetch('/api/v1/dashboard')
-      if (res.ok) {
-        const data = await res.json()
+      const [dashboardRes, lowStockRes] = await Promise.all([
+        fetch('/api/v1/dashboard'),
+        fetch('/api/v1/reports/inventory/low-stock'),
+      ])
+
+      if (dashboardRes.ok) {
+        const data = await dashboardRes.json()
         setSummary(data.data || summary)
+      }
+
+      if (lowStockRes.ok) {
+        const data = await lowStockRes.json()
+        setLowStock(data.data || { critical: [], warning: [], all: [] })
       }
     } catch (err) {
       console.error('Failed to fetch:', err)
@@ -96,12 +116,36 @@ export default function DashboardPage() {
           icon={Package}
           color="bg-info"
         />
-        <StatCard
-          title="Low Stock Items"
-          value={(summary.lowStockCount || 0).toString()}
-          icon={AlertTriangle}
-          color="bg-danger"
-        />
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between">
+              <div className={`p-2 rounded-lg bg-danger w-fit`}>
+                <AlertTriangle className="h-5 w-5 text-white" />
+              </div>
+              <Link href="/app/reports/inventory">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                  View Report
+                </Button>
+              </Link>
+            </div>
+            <div className="mt-4">
+              <p className="text-sm text-muted-foreground">Low Stock Items</p>
+              <p className="text-2xl font-semibold mt-1">
+                {(lowStock.critical.length + lowStock.warning.length) || summary.lowStockCount || 0}
+              </p>
+              <div className="flex gap-3 mt-2">
+                <span className="flex items-center gap-1 text-xs text-danger">
+                  <XCircle className="h-3 w-3" />
+                  {lowStock.critical.length} critical
+                </span>
+                <span className="flex items-center gap-1 text-xs text-warning">
+                  <AlertCircle className="h-3 w-3" />
+                  {lowStock.warning.length} warning
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Charts & Tables Row */}
@@ -161,9 +205,10 @@ export default function DashboardPage() {
                 <p className="text-sm text-muted-foreground">Products</p>
                 <p className="text-xl font-semibold mt-1">{summary.totalProducts || 0}</p>
               </div>
-              <div className="p-4 rounded-lg bg-danger/5">
-                <p className="text-sm text-danger">Low Stock Alert</p>
-                <p className="text-xl font-semibold mt-1 text-danger">{summary.lowStockCount || 0}</p>
+              <div className="p-4 rounded-lg bg-danger/5 border border-danger/20">
+                <p className="text-sm text-danger font-medium">Critical Stock</p>
+                <p className="text-xl font-semibold mt-1 text-danger">{lowStock.critical.length}</p>
+                <p className="text-xs text-muted-foreground mt-1">items out of stock</p>
               </div>
               <div className="p-4 rounded-lg bg-success/5">
                 <p className="text-sm text-success">Sales Today</p>
