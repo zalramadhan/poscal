@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/pre-build.js && next build",
     "start": "next start",
     "lint": "next lint",
     "db:generate": "prisma generate",
@@ -20,7 +20,6 @@
   "dependencies": {
     "@auth/core": "^0",
     "@hookform/resolvers": "^5",
-    "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^5.22.0",
     "@radix-ui/react-checkbox": "^1",
     "@radix-ui/react-dialog": "^1",

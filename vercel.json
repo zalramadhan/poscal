@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
-  "buildCommand": "npm run db:push:direct && npm run db:generate && npm run build",
+  "buildCommand": "npm run db:generate && npm run build",
   "installCommand": "npm install",
   "devCommand": "npm run dev",
   "regions": ["sin1"]
