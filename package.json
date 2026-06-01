@@ -34,6 +34,8 @@
     "@radix-ui/react-tooltip": "^1",
     "@tailwindcss/postcss": "^4.3.0",
     "@tanstack/react-table": "^8",
+    "@types/bcryptjs": "^2.4.6",
+    "bcryptjs": "^3.0.3",
     "better-auth": "^1",
     "class-variance-authority": "^0.7",
     "clsx": "^2",
