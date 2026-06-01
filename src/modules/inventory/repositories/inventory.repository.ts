@@ -141,4 +141,38 @@ export const inventoryRepository = {
       },
     })
   },
+
+  async getProductsWithStock(tenantId: string, warehouseId: string) {
+    const products = await prisma.product.findMany({
+      where: { tenantId, isActive: true, deletedAt: null },
+      select: {
+        id: true,
+        name: true,
+        sku: true,
+        barcode: true,
+        sellingPrice: true,
+        image: true,
+        minStock: true,
+        maxStock: true,
+      },
+    })
+
+    const balances = await prisma.inventoryBalance.findMany({
+      where: { warehouseId },
+      select: { productId: true, quantity: true, reserved: true },
+    })
+
+    const balanceMap = new Map(balances.map((b) => [b.productId, b]))
+
+    return products.map((p) => {
+      const balance = balanceMap.get(p.id)
+      const qty = balance?.quantity?.toNumber() ?? 0
+      const reserved = balance?.reserved ?? 0
+      const available = qty - reserved
+      return {
+        ...p,
+        stock: { balance: qty, reserved, available },
+      }
+    })
+  },
 }
