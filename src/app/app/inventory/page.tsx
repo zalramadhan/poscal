@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/shared/page-states'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
-import { PackageSearch, AlertTriangle, Warehouse } from 'lucide-react'
+import { PackageSearch, AlertTriangle, Warehouse, Trash2 } from 'lucide-react'
 
 export default function InventoryPage() {
   const [balances, setBalances] = React.useState<any[]>([])
@@ -30,6 +30,17 @@ export default function InventoryPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  function handleDeleteStock(id: string, name?: string) {
+    if (!confirm(`Delete stock "${name || id}"? This will remove all inventory balance.`)) return
+
+    fetch(`/api/v1/inventory/balances?id=${id}`, { method: 'DELETE' })
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to delete')
+        fetchInventory()
+      })
+      .catch(() => alert('Failed to delete stock'))
   }
 
   const lowStockItems = balances.filter((b) => (b.quantity || 0) < 10)
@@ -140,6 +151,7 @@ export default function InventoryPage() {
                     <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">SKU</th>
                     <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Warehouse</th>
                     <th className="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Quantity</th>
+                    <th className="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -149,6 +161,15 @@ export default function InventoryPage() {
                       <td className="px-4 py-3 text-sm text-muted-foreground">{item.product?.sku || '-'}</td>
                       <td className="px-4 py-3 text-sm">{item.warehouse?.name || '-'}</td>
                       <td className="px-4 py-3 text-sm text-right font-medium">{Number(item.quantity || 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteStock(item.id, item.product?.name)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

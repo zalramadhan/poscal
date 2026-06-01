@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 import { successResponse } from '@/lib/api-response'
 import { getTenantId, parseBody, withErrorHandler } from '@/lib/api-handler'
 import { settingsService } from '@/lib/services/settings.service'
-import { tenantSettingsSchema, roleSchema, branchSchema, userUpdateSchema } from '@/validators/settings'
+import { tenantSettingsSchema, roleSchema, branchSchema, userUpdateSchema, userCreateSchema } from '@/validators/settings'
 import { validateSchema } from '@/lib/api-handler'
 
 export const GET = withErrorHandler(async (request: NextRequest) => {
@@ -61,6 +61,11 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
     const input = validateSchema(roleSchema, body)
     const role = await settingsService.createRole(tenantId, userId, input)
     return successResponse(role, 'Role created', 201)
+  }
+  if (section === 'users') {
+    const input = validateSchema(userCreateSchema, body)
+    const user = await settingsService.createUser(tenantId, userId, input)
+    return successResponse(user, 'Employee created', 201)
   }
 
   return successResponse(null, 'Unknown section')

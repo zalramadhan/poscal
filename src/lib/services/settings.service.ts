@@ -3,10 +3,11 @@
 // ──────────────────────────────────────────────────────
 
 import { prisma } from '@/lib/prisma'
-import type { RoleInput, BranchInput, TenantSettingsInput } from '@/validators/settings'
+import type { RoleInput, BranchInput, TenantSettingsInput, UserCreateInput } from '@/validators/settings'
 import { createAuditLog } from '@/lib/audit'
 import { AppError, NotFoundError } from '@/lib/errors'
 import type { Prisma, UserStatus, User } from '@prisma/client'
+import { createHash } from 'crypto'
 
 export const settingsService = {
   // ── Tenant ──
@@ -123,5 +124,33 @@ export const settingsService = {
 
     await prisma.user.update({ where: { id }, data: { deletedAt: new Date() } })
     await createAuditLog({ tenantId, userId, entity: 'user', entityId: id, action: 'DELETE', newValue: { name: user.name } })
+  },
+
+  async createUser(tenantId: string, userId: string, input: UserCreateInput) {
+    const existing = await prisma.user.findFirst({ where: { email: input.email, tenantId, deletedAt: null } })
+    if (existing) throw new AppError('User with this email already exists', 409)
+
+    const role = await prisma.role.findFirst({ where: { id: input.roleId, tenantId } })
+    if (!role) throw new NotFoundError('Role')
+
+    const passwordHash = createHash('sha256').update(input.password).digest('hex')
+
+    const user = await prisma.user.create({
+      data: {
+        tenantId,
+        name: input.name,
+        email: input.email,
+        passwordHash,
+        roleId: input.roleId,
+        branchId: input.branchId ?? null,
+        status: 'ACTIVE',
+      },
+      include: {
+        role: { select: { id: true, name: true } },
+        branch: { select: { id: true, name: true } },
+      },
+    })
+    await createAuditLog({ tenantId, userId, entity: 'user', entityId: user.id, action: 'CREATE', newValue: { name: user.name, email: user.email } })
+    return user
   },
 }

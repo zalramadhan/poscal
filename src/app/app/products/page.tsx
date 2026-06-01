@@ -8,7 +8,7 @@ import { PageHeader, LoadingState, EmptyState, ErrorState } from '@/components/s
 import { DataTable } from '@/components/ui/data-table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Edit, Package } from 'lucide-react'
+import { Plus, Edit, Package, Trash2 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { usePaginatedFetch } from '@/hooks'
 import type { ColumnDef } from '@tanstack/react-table'
@@ -65,10 +65,28 @@ const columns: ColumnDef<Product>[] = [
             <Edit className="h-4 w-4" />
           </Button>
         </Link>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => handleDelete(row.original.id, row.original.name)}
+        >
+          <Trash2 className="h-4 w-4 text-destructive" />
+        </Button>
       </div>
     ),
   },
 ]
+
+function handleDelete(id: string, name: string) {
+  if (!confirm(`Delete product "${name}"?`)) return
+
+  fetch(`/api/v1/products/${id}`, { method: 'DELETE' })
+    .then((res) => {
+      if (!res.ok) throw new Error('Failed to delete')
+      window.location.reload()
+    })
+    .catch(() => alert('Failed to delete product'))
+}
 
 export default function ProductsPage() {
   const router = useRouter()

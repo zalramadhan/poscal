@@ -43,6 +43,10 @@ export const inventoryRepository = {
     })
   },
 
+  async deleteBalance(id: string) {
+    return prisma.inventoryBalance.delete({ where: { id } })
+  },
+
   // ── Movements ──
   async getMovements(
     tenantId: string,
