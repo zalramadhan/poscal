@@ -1,19 +1,32 @@
-import { betterAuth } from 'better-auth'
+import { betterAuth, BetterAuthError } from 'better-auth'
+import { prismaAdapter } from 'better-auth/adapters/prisma'
 import { prisma } from '@/lib/prisma'
 
+export { BetterAuthError }
+
 export const auth = betterAuth({
-  database: prisma,
+  database: prismaAdapter(prisma, {
+    provider: 'postgresql',
+  }),
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,
-    autoSignIn: true,
+    passwordStrength: {
+      minLength: 8,
+      requireLetter: true,
+      requireNumber: true,
+    },
   },
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 5, // 5 minutes
+    },
   },
   user: {
-    modelName: 'User',
+    modelName: 'user',
     fields: {
       email: 'email',
       name: 'name',

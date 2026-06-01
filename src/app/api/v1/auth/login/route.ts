@@ -1,17 +1,40 @@
 import { NextRequest } from 'next/server'
 import { successResponse, errorResponse } from '@/lib/api-response'
-import { loginSchema, registerSchema } from '@/validators/auth'
-import { parseBody, withErrorHandler } from '@/lib/api-handler'
+import { auth, BetterAuthError } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 
-export const POST = withErrorHandler(async (request: NextRequest) => {
-  const body = await parseBody<{ email: string; password: string; name?: string }>(request)
-  const { email, password } = body
+export const POST = async (request: NextRequest) => {
+  try {
+    const body = await request.json()
+    const { email, password } = body
 
-  // For now, simple validation
-  const user = { id: '1', name: 'Admin', email, tenantId: 'default', roleId: '1' }
+    if (!email || !password) {
+      return errorResponse('Email dan password diperlukan', 400)
+    }
 
-  return successResponse({
-    user,
-    token: `mock-token-${Date.now()}`,
-  }, 'Login successful')
-})
+    const result = await auth.api.signInEmail({
+      body: { email, password },
+      headers: request.headers,
+    } as any) as any
+
+    if (!result.user) {
+      return errorResponse('Email atau password salah', 401)
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, name: true, email: true, tenantId: true, roleId: true, branchId: true },
+    })
+
+    return successResponse({
+      user,
+      session: { token: result.token },
+    }, 'Login successful')
+  } catch (error) {
+    if (error instanceof BetterAuthError) {
+      return errorResponse('Email atau password salah', 401)
+    }
+    console.error('[Login Error]', error)
+    return errorResponse('Internal server error', 500)
+  }
+}

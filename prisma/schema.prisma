@@ -91,6 +91,12 @@ enum ShiftStatus {
   CLOSED
 }
 
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+}
+
 enum ReservationStatus {
   ACTIVE
   RELEASED
@@ -138,6 +144,7 @@ model Tenant {
   menus           Menu[]
   kitchenOrders   KitchenOrder[]
   cashierShifts   CashierShift[]
+  invitations     Invitation[]
 }
 
 // ──────────────────────────────────────────────────────────
@@ -153,6 +160,7 @@ model Role {
   tenant      Tenant            @relation(fields: [tenantId], references: [id])
   users       User[]
   permissions RolePermission[]
+  invitations Invitation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -206,6 +214,27 @@ model User {
 
   @@index([tenantId])
   @@index([email])
+}
+
+model Invitation {
+  id         String           @id @default(uuid())
+  tenantId   String
+  email      String
+  roleId     String
+  branchId   String?
+  token      String           @unique
+  status     InvitationStatus @default(PENDING)
+  expiresAt  DateTime
+  invitedBy  String
+  acceptedAt DateTime?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  role   Role    @relation(fields: [roleId], references: [id])
+
+  @@index([tenantId])
+  @@index([token])
 }
 
 model CashierShift {

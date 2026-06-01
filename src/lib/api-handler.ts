@@ -12,22 +12,27 @@ type HandlerContext = {
 }
 
 export async function getTenantId(request: NextRequest): Promise<string> {
-  // In production, extract from auth session
-  // For now, get from header or first tenant in DB
-  const headerId = request.headers.get('x-tenant-id')
-  if (headerId) return headerId
-
-  // Fallback: fetch first tenant from database
-  const tenant = await prisma.tenant.findFirst({ orderBy: { createdAt: 'asc' } })
-  if (tenant) return tenant.id
-
-  // Last resort fallback (development only)
-  return 'default'
+  const tenantId = request.headers.get('x-tenant-id')
+  if (!tenantId) {
+    throw { statusCode: 401, message: 'Tenant ID not found in context' }
+  }
+  return tenantId
 }
 
 export async function getUserId(request: NextRequest): Promise<string> {
-  const userId = request.headers.get('x-user-id') || 'system'
+  const userId = request.headers.get('x-user-id')
+  if (!userId) {
+    throw { statusCode: 401, message: 'User ID not found in context' }
+  }
   return userId
+}
+
+export async function getRoleId(request: NextRequest): Promise<string | null> {
+  return request.headers.get('x-role-id')
+}
+
+export async function getBranchId(request: NextRequest): Promise<string | null> {
+  return request.headers.get('x-branch-id')
 }
 
 export function validateSchema<T>(schema: ZodType<T, any, any>, data: unknown): T {
