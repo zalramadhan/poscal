@@ -24,7 +24,7 @@ interface ShiftItem {
 const statusColors = {
   OPEN: 'success',
   PENDING_APPROVAL: 'warning',
-  CLOSED: 'secondary',
+  CLOSED: 'outline',
 } as const
 
 const columns: ColumnDef<ShiftItem>[] = [

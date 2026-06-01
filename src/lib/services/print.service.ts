@@ -45,13 +45,14 @@ export const printService = {
       include: {
         items: { include: { product: true } },
         payments: { include: { paymentMethod: true } },
-        createdByUser: { select: { name: true } },
         branch: true,
         customer: true,
       },
     })
 
     if (!sale) throw new Error('Sale not found')
+
+    const user = await prisma.user.findUnique({ where: { id: sale.createdBy }, select: { name: true } })
 
     const payment = sale.payments[0]
     const items: ReceiptItem[] = sale.items.map((item) => ({
@@ -69,7 +70,7 @@ export const printService = {
       invoiceNumber: sale.invoiceNumber,
       date: formatDate(sale.createdAt),
       time: new Date(sale.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-      cashier: sale.createdByUser?.name || 'Unknown',
+      cashier: user?.name || 'Unknown',
       branch: sale.branch.name,
       items,
       subtotal: sale.subtotal.toNumber(),
@@ -99,9 +100,9 @@ export const printService = {
     return {
       ...receipt,
       customerName: sale?.customer?.name,
-      customerPhone: sale?.customer?.phone,
-      customerEmail: sale?.customer?.email,
-      address: sale?.customer?.address,
+      customerPhone: sale?.customer?.phone ?? undefined,
+      customerEmail: sale?.customer?.email ?? undefined,
+      address: sale?.customer?.address ?? undefined,
       paymentDetails,
       footerText: 'This is a computer-generated invoice. No signature required.',
     }

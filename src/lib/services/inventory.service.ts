@@ -115,7 +115,7 @@ export const inventoryService = {
       newStock,
       params.referenceType || null,
       params.referenceId || null,
-      params.notes || null,
+      params.note || null,
       params.reason || null,
       params.note || null,
       params.createdBy

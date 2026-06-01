@@ -20,7 +20,8 @@ export const POST = withErrorHandler(async (request: NextRequest, { params }: { 
   const action = url.searchParams.get('action')
 
   if (action === 'submit') {
-    const { items } = body
+    const { items } = body as { items?: { productId: string; countedQty: number }[] }
+    if (!items) return errorResponse('items is required', 400)
     const opname = await opnameService.submitCounts({ opnameId: id, tenantId, items, submittedBy: userId })
     return successResponse(opname, 'Counts submitted')
   }
@@ -31,7 +32,8 @@ export const POST = withErrorHandler(async (request: NextRequest, { params }: { 
   }
 
   if (action === 'reject') {
-    const { reason } = body
+    const { reason } = body as { reason?: string }
+    if (!reason) return errorResponse('reason is required', 400)
     const opname = await opnameService.reject({ opnameId: id, tenantId, userId, reason })
     return successResponse(opname, 'Opname rejected, please recount')
   }

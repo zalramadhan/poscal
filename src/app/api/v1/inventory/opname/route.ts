@@ -8,7 +8,8 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
   const userId = request.headers.get('x-user-id') || 'system'
   const body = await parseBody(request)
 
-  const { warehouseId, notes } = body
+  const { warehouseId, notes } = body as { warehouseId?: string; notes?: string }
+  if (!warehouseId) return errorResponse('warehouseId is required', 400)
   const opname = await opnameService.start({ tenantId, warehouseId, notes, createdBy: userId })
   return successResponse(opname, 'Stock opname started', 201)
 })

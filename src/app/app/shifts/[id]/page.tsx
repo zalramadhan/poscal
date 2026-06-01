@@ -62,7 +62,7 @@ interface ShiftReport {
 const statusColors = {
   OPEN: 'success',
   PENDING_APPROVAL: 'warning',
-  CLOSED: 'secondary',
+  CLOSED: 'outline',
 } as const
 
 export default function ShiftDetailPage() {
@@ -158,7 +158,7 @@ export default function ShiftDetailPage() {
                   </p>
                 </div>
               </div>
-              <Button onClick={handleApprove} disabled={approving} variant="warning">
+              <Button onClick={handleApprove} disabled={approving} variant="default">
                 <Check className="h-4 w-4 mr-2" />
                 {approving ? 'Approving...' : 'Approve Shift'}
               </Button>

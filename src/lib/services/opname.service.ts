@@ -117,7 +117,7 @@ export const opnameService = {
 
       await prisma.inventoryBalance.upsert({
         where: { warehouseId_productId: { warehouseId: opname.warehouseId, productId: item.productId } },
-        data: { quantity: newStock },
+        update: { quantity: newStock },
         create: { tenantId, warehouseId: opname.warehouseId, productId: item.productId, quantity: newStock },
       })
     }

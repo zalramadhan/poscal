@@ -3,6 +3,8 @@ import { successResponse, paginatedResponse } from '@/lib/api-response'
 import { getTenantId, parseSearchParams, withErrorHandler } from '@/lib/api-handler'
 import { prisma } from '@/lib/prisma'
 
+const SHRINKAGE_TYPES = ['WASTAGE', 'BREAKAGE', 'THEFT', 'SHRINKAGE'] as const
+
 export const GET = withErrorHandler(async (request: NextRequest) => {
   const tenantId = await getTenantId(request)
   const params = await parseSearchParams(request)
@@ -15,7 +17,7 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
     const movements = await prisma.inventoryMovement.findMany({
       where: {
         tenantId,
-        movementType: { in: ['WASTAGE', 'BREAKAGE', 'THEFT', 'SHRINKAGE'] },
+        movementType: { in: [...SHRINKAGE_TYPES] as any },
         createdAt: { gte: startDate, lte: endDate },
       },
       include: {
@@ -26,10 +28,11 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
     })
 
     const summary = {
-      totalWastage: movements.filter((m) => m.movementType === 'WASTAGE').reduce((sum, m) => sum + Math.abs(m.quantity.toNumber()), 0),
-      totalBreakage: movements.filter((m) => m.movementType === 'BREAKAGE').reduce((sum, m) => sum + Math.abs(m.quantity.toNumber()), 0),
-      totalTheft: movements.filter((m) => m.movementType === 'THEFT').reduce((sum, m) => sum + Math.abs(m.quantity.toNumber()), 0),
-      totalShrinkage: movements.filter((m) => m.movementType === 'SHRINKAGE').reduce((sum, m) => sum + Math.abs(m.quantity.toNumber()), 0),
+      totalWastage: movements.filter((m) => String(m.movementType) === 'WASTAGE').reduce((sum, m) => sum + Math.abs(m.quantity.toNumber()), 0),
+      totalBreakage: movements.filter((m) => String(m.movementType) === 'BREAKAGE').reduce((sum, m) => sum + Math.abs(m.quantity.toNumber()), 0),
+      totalTheft: movements.filter((m) => String(m.movementType) === 'THEFT').reduce((sum, m) => sum + Math.abs(m.quantity.toNumber()), 0),
+      totalShrinkage: movements.filter((m) => String(m.movementType) === 'SHRINKAGE').reduce((sum, m) => sum + Math.abs(m.quantity.toNumber()), 0),
+      totalLoss: 0,
     }
     summary.totalLoss = summary.totalWastage + summary.totalBreakage + summary.totalTheft + summary.totalShrinkage
 

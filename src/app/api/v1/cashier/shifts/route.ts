@@ -35,7 +35,7 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
   const userId = request.headers.get('x-user-id') || 'system'
   const body = await parseBody(request)
 
-  const { branchId, openingCash } = body
+  const { branchId, openingCash } = body as { branchId?: string; openingCash?: number }
 
   if (!branchId || openingCash === undefined) {
     return errorResponse('branchId and openingCash are required', 400)

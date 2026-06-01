@@ -100,7 +100,7 @@ export const shiftService = {
 
     return {
       data: shifts,
-      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     }
   },
 

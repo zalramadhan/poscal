@@ -21,7 +21,7 @@ export const POST = withErrorHandler(async (request: NextRequest, { params }: { 
   const action = url.searchParams.get('action')
 
   if (action === 'close') {
-    const { closingCash, notes } = body
+    const { closingCash, notes } = body as { closingCash?: number; notes?: string }
     const shift = await shiftService.closeShift({
       shiftId: id,
       tenantId,
@@ -35,7 +35,7 @@ export const POST = withErrorHandler(async (request: NextRequest, { params }: { 
   }
 
   if (action === 'approve') {
-    const { managerId, notes } = body
+    const { managerId, notes } = body as { managerId?: string; notes?: string }
     const shift = await shiftService.approveShift({
       shiftId: id,
       tenantId,

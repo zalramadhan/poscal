@@ -12,7 +12,8 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
   const action = url.searchParams.get('action')
 
   if (action === 'reserve') {
-    const { warehouseId, cartId, items } = body
+    const { warehouseId, cartId, items } = body as { warehouseId?: string; cartId?: string; items?: any[] }
+    if (!warehouseId || !cartId || !items) return errorResponse('warehouseId, cartId, and items are required', 400)
     const result = await reservationService.reserve({ tenantId, warehouseId, cartId, userId, items })
     if (!result.allSucceeded) {
       return successResponse(result, 'Partial reservation failed - some items unavailable', 200)
@@ -21,13 +22,15 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
   }
 
   if (action === 'release') {
-    const { cartId } = body
+    const { cartId } = body as { cartId?: string }
+    if (!cartId) return errorResponse('cartId is required', 400)
     const result = await reservationService.release(cartId)
     return successResponse(result, 'Reservation released', 200)
   }
 
   if (action === 'confirm') {
-    const { cartId, saleId } = body
+    const { cartId, saleId } = body as { cartId?: string; saleId?: string }
+    if (!cartId || !saleId) return errorResponse('cartId and saleId are required', 400)
     const result = await reservationService.confirm({ cartId, saleId, userId })
     return successResponse(result, 'Reservation confirmed and stock deducted', 200)
   }
