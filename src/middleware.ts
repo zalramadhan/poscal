@@ -19,12 +19,12 @@ const PUBLIC_PATHS = [
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  if (!pathname.startsWith('/api/v1/auth')) {
+  const isPublicPath = PUBLIC_PATHS.some(path => pathname.startsWith(path))
+  if (isPublicPath) {
     return NextResponse.next()
   }
 
-  const isPublicPath = PUBLIC_PATHS.some(path => pathname.startsWith(path))
-  if (isPublicPath) {
+  if (!pathname.startsWith('/api/v1/')) {
     return NextResponse.next()
   }
 
