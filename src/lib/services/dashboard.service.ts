@@ -62,7 +62,7 @@ export const dashboardService = {
 
     // Top products using raw SQL
     const topProducts = await prisma.$queryRawUnsafe<any[]>(`
-      SELECT si."productId", SUM(si.quantity) as totalSold, p.name, p.sku
+      SELECT si."productId", SUM(si.quantity)::integer as totalSold, p.name, p.sku
       FROM "public"."SaleItem" si
       JOIN "public"."Sale" s ON si."saleId" = s.id
       JOIN "public"."Product" p ON si."productId" = p.id
