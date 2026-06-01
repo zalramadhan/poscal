@@ -11,7 +11,7 @@
     "db:push": "prisma db push",
     "db:push:direct": "node scripts/push-db.js",
     "db:migrate": "prisma migrate dev",
-    "db:seed": "npx tsx prisma/seed.ts",
+    "db:seed": "npx tsx prisma/seed-basic.ts",
     "db:studio": "prisma studio",
     "db:format": "prisma format",
     "db:validate": "prisma validate",
