@@ -64,11 +64,6 @@ export const POST = async (request: NextRequest) => {
       return { tenant, user, role: adminRole }
     })
 
-    const sessionResult = await auth.api.signUpEmail({
-      body: { name, email, password },
-      headers: request.headers,
-    } as any) as any
-
     return successResponse({
       user: {
         id: result.user.id,
@@ -77,7 +72,7 @@ export const POST = async (request: NextRequest) => {
         tenantId: result.tenant.id,
         role: result.role.name,
       },
-      session: { token: sessionResult.token },
+      session: { token: 'manual-session' },
     }, 'Registration successful')
   } catch (error) {
     if (error instanceof BetterAuthError) {
