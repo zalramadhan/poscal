@@ -61,8 +61,8 @@ export const saleService = {
       // Note: We omit status since SaleStatus enum doesn't exist in database
       const result = await tx.$queryRawUnsafe<any[]>(
         `INSERT INTO "public"."Sale" 
-          (id, "tenantId", "branchId", "customerId", "invoiceNumber", "subtotal", "discount", "tax", "total", "notes", "status", "createdBy", "cashierShiftId", "createdAt")
-         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, 'COMPLETED', $10, $11, NOW())
+          (id, "tenantId", "branchId", "customerId", "invoiceNumber", "subtotal", "discount", "tax", "total", "notes", "status", "createdBy", "cashierShiftId", "createdAt", "updatedAt")
+         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, 'COMPLETED', $10, $11, NOW(), NOW())
          RETURNING *`,
         params.tenantId,
         params.branchId,
