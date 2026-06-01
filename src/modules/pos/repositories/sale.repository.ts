@@ -44,13 +44,13 @@ export const saleRepository = {
   ) {
     const { page = 1, limit = 10, search, status, startDate, endDate } = params
     
-    // Build WHERE clause for raw SQL
+    // Build WHERE clause - always filter by tenantId using raw SQL
     let whereClause = `s."tenantId" = $1`
     const queryParams: any[] = [tenantId]
     let paramIndex = 2
     
     if (search) {
-      whereClause += ` AND s."invoiceNumber" ILIKE $${paramIndex}`
+      whereClause += ` AND s."invoiceNumber" LIKE $${paramIndex}`
       queryParams.push(`%${search}%`)
       paramIndex++
     }
@@ -74,7 +74,7 @@ export const saleRepository = {
     )
     const total = Number(countResult[0]?.total) || 0
 
-    // Get sales with items and payments
+    // Get sales
     const offset = (page - 1) * limit
     const sales = await prisma.$queryRawUnsafe<any[]>(`
       SELECT 
