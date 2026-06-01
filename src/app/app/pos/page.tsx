@@ -216,8 +216,7 @@ export default function POSPage() {
         setPrintDialogOpen(true)
       }
       setCart([])
-      router.push('/app/pos/history')
-      router.refresh()
+      setCheckoutLoading(false)
     } catch (err: any) {
       setCheckoutError(err.message)
       setCheckoutLoading(false)

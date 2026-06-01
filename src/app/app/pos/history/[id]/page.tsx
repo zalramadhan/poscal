@@ -3,11 +3,13 @@
 import * as React from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
-import { toPng, toJpeg } from 'html-to-image'
+import { toJpeg } from 'html-to-image'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { PageHeader, LoadingState, ErrorState } from '@/components/shared/page-states'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { ReceiptTemplate } from '@/components/shared/receipt-template'
+import { InvoiceTemplate } from '@/components/shared/invoice-template'
 import {
   ArrowLeft,
   Printer,
@@ -33,7 +35,7 @@ interface DisplaySale {
   discount: number
   total: number
   status: string
-  items: { id: string; name: string; quantity: number; price: number; subtotal: number }[]
+  items: { id: string; name: string; sku: string; quantity: number; price: number; subtotal: number }[]
   payments: { id: string; method: string; amount: number; referenceNumber?: string }[]
   branch: string
   cashier: string
@@ -67,6 +69,7 @@ function mapSaleToDisplay(sale: Sale): DisplaySale {
     items: (sale.items || []).map((item) => ({
       id: item.id,
       name: item.product?.name || 'Unknown',
+      sku: item.product?.sku || '',
       quantity: Number(item.quantity),
       price: Number(item.price),
       subtotal: Number(item.subtotal),
@@ -91,7 +94,8 @@ export default function SaleDetailPage() {
 
   const { data: saleData, loading, error, refetch } = useFetch<Sale>(`/api/v1/sales/${id}`)
   const [exporting, setExporting] = React.useState<'print' | 'jpeg' | null>(null)
-  const printRef = React.useRef<HTMLDivElement>(null)
+  const receiptRef = React.useRef<HTMLDivElement>(null)
+  const invoiceRef = React.useRef<HTMLDivElement>(null)
 
   if (loading) return <LoadingState message="Loading sale detail..." />
   if (error) {
@@ -117,10 +121,9 @@ export default function SaleDetailPage() {
   const statusInfo = statusConfig[sale.status] || { variant: 'default' as const, label: sale.status }
 
   async function handlePrint() {
-    if (!printRef.current) return
+    if (!receiptRef.current) return
     setExporting('print')
     try {
-      const dataUrl = await toPng(printRef.current, { quality: 1, pixelRatio: 2 })
       const printWindow = window.open('', '_blank')
       if (!printWindow) {
         setExporting(null)
@@ -129,18 +132,15 @@ export default function SaleDetailPage() {
       printWindow.document.write(`
         <html>
           <head>
-            <title>Invoice ${sale.invoiceNumber}</title>
+            <title>Receipt - ${sale.invoiceNumber}</title>
             <style>
-              body { margin: 0; display: flex; justify-content: center; align-items: flex-start; padding: 20px; }
-              img { max-width: 100%; height: auto; }
-              @media print {
-                body { padding: 0; }
-                img { max-width: 100%; }
-              }
+              @page { size: 80mm auto; margin: 0; }
+              body { margin: 0; padding: 0; }
             </style>
           </head>
           <body>
-            <img src="${dataUrl}" alt="Invoice ${sale.invoiceNumber}" onload="window.print(); window.close();" />
+            ${receiptRef.current.innerHTML}
+            <script>window.print(); window.close();</script>
           </body>
         </html>
       `)
@@ -152,10 +152,10 @@ export default function SaleDetailPage() {
   }
 
   async function handleExportJPEG() {
-    if (!printRef.current) return
+    if (!invoiceRef.current) return
     setExporting('jpeg')
     try {
-      const dataUrl = await toJpeg(printRef.current, { quality: 0.95, pixelRatio: 2 })
+      const dataUrl = await toJpeg(invoiceRef.current, { quality: 0.95, pixelRatio: 2 })
       const link = document.createElement('a')
       link.download = `Invoice-${sale.invoiceNumber}.jpg`
       link.href = dataUrl
@@ -202,7 +202,7 @@ export default function SaleDetailPage() {
       </PageHeader>
 
       {/* Invoice Content */}
-      <div ref={printRef} className="bg-white rounded-lg">
+      <div className="bg-white rounded-lg">
         {/* Status Banner */}
         <div className={`mb-6 p-4 rounded-lg border ${
           sale.status === 'COMPLETED'
@@ -420,6 +420,65 @@ export default function SaleDetailPage() {
                 )}
               </CardContent>
             </Card>
+          </div>
+        </div>
+
+        {/* Hidden print templates */}
+        <div style={{ position: 'absolute', left: '-9999px' }}>
+          <div ref={receiptRef}>
+            <ReceiptTemplate
+              data={{
+                invoiceNumber: sale.invoiceNumber,
+                date: formatDate(sale.createdAt),
+                time: new Date(sale.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+                cashier: sale.cashier,
+                branch: sale.branch,
+                items: sale.items.map((item) => ({
+                  sku: item.sku,
+                  name: item.name,
+                  quantity: item.quantity,
+                  price: item.price,
+                  subtotal: item.subtotal,
+                })),
+                subtotal: sale.subtotal,
+                discount: sale.discount,
+                total: sale.total,
+                paymentMethod: sale.payments[0]?.method || 'Cash',
+                cashReceived: sale.payments[0]?.amount || sale.total,
+                change: (sale.payments[0]?.amount || sale.total) - sale.total,
+                verifyUrl: `${typeof window !== 'undefined' ? window.location.origin : ''}/app/verify/${sale.invoiceNumber}`,
+              }}
+            />
+          </div>
+          <div ref={invoiceRef}>
+            <InvoiceTemplate
+              data={{
+                invoiceNumber: sale.invoiceNumber,
+                date: formatDate(sale.createdAt),
+                time: new Date(sale.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+                cashier: sale.cashier,
+                branch: sale.branch,
+                items: sale.items.map((item) => ({
+                  sku: item.sku,
+                  name: item.name,
+                  quantity: item.quantity,
+                  price: item.price,
+                  subtotal: item.subtotal,
+                })),
+                subtotal: sale.subtotal,
+                discount: sale.discount,
+                total: sale.total,
+                paymentMethod: sale.payments[0]?.method || 'Cash',
+                cashReceived: sale.payments[0]?.amount || sale.total,
+                change: (sale.payments[0]?.amount || sale.total) - sale.total,
+                verifyUrl: `${typeof window !== 'undefined' ? window.location.origin : ''}/app/verify/${sale.invoiceNumber}`,
+                customerName: sale.customer === 'Walk-in' ? undefined : sale.customer,
+                paymentDetails: sale.payments.map((p) => ({
+                  method: p.method,
+                  amount: p.amount,
+                })),
+              }}
+            />
           </div>
         </div>
       </div>
