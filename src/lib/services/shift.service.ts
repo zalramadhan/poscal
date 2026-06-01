@@ -35,11 +35,16 @@ export const shiftService = {
     const shift = await prisma.cashierShift.findFirst({
       where: { tenantId, userId, status: 'OPEN' },
       include: {
-        user: { select: { id: true, name: true } },
-        branch: { select: { id: true, name: true } },
         _count: { select: { sales: true } },
       },
     })
+    if (shift) {
+      const [user, branch] = await Promise.all([
+        prisma.user.findUnique({ where: { id: userId }, select: { id: true, name: true } }),
+        prisma.branch.findUnique({ where: { id: shift.branchId }, select: { id: true, name: true } }),
+      ])
+      return { ...shift, user, branch }
+    }
     return shift
   },
 
@@ -47,8 +52,6 @@ export const shiftService = {
     const shift = await prisma.cashierShift.findFirst({
       where: { id: shiftId, tenantId },
       include: {
-        user: { select: { id: true, name: true, email: true } },
-        branch: { select: { id: true, name: true } },
         sales: {
           include: {
             payments: { include: { paymentMethod: true } },
@@ -58,7 +61,13 @@ export const shiftService = {
       },
     })
     if (!shift) throw new NotFoundError('Cashier shift')
-    return shift
+
+    const [user, branch] = await Promise.all([
+      prisma.user.findUnique({ where: { id: shift.userId }, select: { id: true, name: true, email: true } }),
+      prisma.branch.findUnique({ where: { id: shift.branchId }, select: { id: true, name: true } }),
+    ])
+
+    return { ...shift, user, branch }
   },
 
   async listShifts(params: {
@@ -87,8 +96,6 @@ export const shiftService = {
       prisma.cashierShift.findMany({
         where,
         include: {
-          user: { select: { id: true, name: true } },
-          branch: { select: { id: true, name: true } },
           _count: { select: { sales: true } },
         },
         orderBy: { openedAt: 'desc' },
@@ -98,8 +105,23 @@ export const shiftService = {
       prisma.cashierShift.count({ where }),
     ])
 
+    const userIds = [...new Set(shifts.map(s => s.userId))]
+    const branchIds = [...new Set(shifts.map(s => s.branchId))]
+    const [users, branches] = await Promise.all([
+      userIds.length ? prisma.user.findMany({ where: { id: { in: userIds } }, select: { id: true, name: true } }) : [],
+      branchIds.length ? prisma.branch.findMany({ where: { id: { in: branchIds } }, select: { id: true, name: true } }) : [],
+    ])
+    const userMap = new Map(users.map(u => [u.id, u]))
+    const branchMap = new Map(branches.map(b => [b.id, b]))
+
+    const data = shifts.map(shift => ({
+      ...shift,
+      user: userMap.get(shift.userId),
+      branch: branchMap.get(shift.branchId),
+    }))
+
     return {
-      data: shifts,
+      data,
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     }
   },
