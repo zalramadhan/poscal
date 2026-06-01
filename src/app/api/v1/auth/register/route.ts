@@ -7,10 +7,12 @@ import bcrypt from 'bcryptjs'
 export const POST = async (request: NextRequest) => {
   try {
     const body = await request.json()
-    const { name, email, password, storeName } = body
+    const { name, email, password, businessName, storeName } = body
 
-    if (!name || !email || !password || !storeName) {
-      return errorResponse('Name, email, password, dan storeName diperlukan', 400)
+    const companyName = businessName || storeName
+
+    if (!name || !email || !password || !companyName) {
+      return errorResponse('Name, email, password, dan business name diperlukan', 400)
     }
 
     if (password.length < 8) {
@@ -28,14 +30,14 @@ export const POST = async (request: NextRequest) => {
     const passwordHash = await bcrypt.hash(password, 12)
 
     const result = await prisma.$transaction(async (tx) => {
-      const slug = storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+      const slug = companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 
       const existingSlug = await tx.tenant.findUnique({ where: { slug } })
       const finalSlug = existingSlug ? `${slug}-${Date.now()}` : slug
 
       const tenant = await tx.tenant.create({
         data: {
-          name: storeName,
+          name: companyName,
           slug: finalSlug,
           email,
           status: 'active',
