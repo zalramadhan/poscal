@@ -7,7 +7,7 @@ import { PageHeader, LoadingState, ErrorState } from '@/components/shared/page-s
 import { DataTable, type FilterConfig } from '@/components/ui/data-table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Eye } from 'lucide-react'
+import { Plus, Eye, Trash2 } from 'lucide-react'
 import { usePaginatedFetch } from '@/hooks'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { Customer } from '@/types'
@@ -41,6 +41,33 @@ const tierFilters: FilterConfig = {
   ],
 }
 
+function DeleteButton({ id, name, onDeleted }: { id: string, name: string, onDeleted: () => void }) {
+  const [deleting, setDeleting] = React.useState(false)
+
+  async function handleDelete() {
+    if (!confirm('Delete customer ' + name + '?')) return
+    setDeleting(true)
+    try {
+      const res = await fetch('/api/v1/customers?id=' + id, { method: 'DELETE' })
+      if (res.ok) {
+        onDeleted()
+      } else {
+        alert('Failed to delete')
+      }
+    } catch {
+      alert('Error deleting')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  return (
+    <Button variant="ghost" size="sm" onClick={handleDelete} disabled={deleting}>
+      <Trash2 className="h-4 w-4 mr-1" />{deleting ? '...' : 'Delete'}
+    </Button>
+  )
+}
+
 function mapCustomersToRows(customers: Customer[]): CustomerRow[] {
   return customers.map((c) => ({
     id: c.id,
@@ -71,11 +98,14 @@ const columns: ColumnDef<CustomerRow>[] = [
   {
     id: 'actions',
     cell: ({ row }) => (
-      <Link href={`/app/customers/${row.original.id}`}>
-        <Button variant="ghost" size="sm">
-          <Eye className="h-4 w-4 mr-1" />View
-        </Button>
-      </Link>
+      <div className="flex gap-2">
+        <DeleteButton id={row.original.id} name={row.original.name} onDeleted={() => window.location.reload()} />
+        <Link href={`/app/customers/${row.original.id}`}>
+          <Button variant="ghost" size="sm">
+            <Eye className="h-4 w-4 mr-1" />View
+          </Button>
+        </Link>
+      </div>
     ),
   },
 ]
