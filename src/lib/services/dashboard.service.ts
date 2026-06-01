@@ -63,6 +63,17 @@ export const dashboardService = {
     // Top products - use raw SQL to avoid enum issues with Prisma groupBy
     let topProducts: any[] = []
     try {
+      // First check raw values
+      const rawCheck = await prisma.$queryRawUnsafe<any[]>(`
+        SELECT si."productId", si.quantity, si.quantity::text as qty_text, si.quantity::numeric as qty_numeric
+        FROM "public"."SaleItem" si
+        INNER JOIN "public"."Sale" s ON si."saleId" = s.id
+        WHERE s."tenantId" = $1
+        LIMIT 5
+      `, tenantId)
+      console.log('[Dashboard] Raw quantity values:', JSON.stringify(rawCheck))
+      
+      // Now try the SUM
       const topProductsRaw = await prisma.$queryRawUnsafe<any[]>(`
         SELECT 
           si."productId", 
@@ -77,14 +88,18 @@ export const dashboardService = {
         ORDER BY totalSold DESC
         LIMIT 5
       `, tenantId)
+      console.log('[Dashboard] Top products raw with SUM:', JSON.stringify(topProductsRaw))
       
-      topProducts = topProductsRaw.map((p: any) => ({
-        id: p.productId,
-        productId: p.productId,
-        name: p.name,
-        sku: p.sku,
-        totalSold: Number(p.totalSold) || 0
-      }))
+      topProducts = topProductsRaw.map((p: any) => {
+        console.log('[Dashboard] p.totalSold type:', typeof p.totalSold, 'value:', p.totalSold)
+        return {
+          id: p.productId,
+          productId: p.productId,
+          name: p.name,
+          sku: p.sku,
+          totalSold: Number(p.totalSold) || 0
+        }
+      })
     } catch (err) {
       console.error('[Dashboard] Error getting top products:', err)
     }
