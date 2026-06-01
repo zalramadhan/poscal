@@ -63,37 +63,32 @@ export const dashboardService = {
     // Top products - use raw SQL to avoid enum issues with Prisma groupBy
     let topProducts: any[] = []
     try {
-      // First check what quantities are stored in SaleItem
-      const debugQty = await prisma.$queryRawUnsafe<any[]>(`
-        SELECT si."saleId", si."productId", si.quantity, p.name
-        FROM "public"."SaleItem" si
-        INNER JOIN "public"."Product" p ON si."productId" = p.id
-        LIMIT 5
-      `)
-      console.log('[Dashboard] SaleItem quantities:', JSON.stringify(debugQty))
-      
+      // Direct query to get quantity info
       const topProductsRaw = await prisma.$queryRawUnsafe<any[]>(`
         SELECT 
           si."productId", 
           p.name, 
           p.sku,
+          (si.quantity)::text as qty_text,
+          si.quantity as qty_raw,
           SUM(si.quantity) as totalSold
         FROM "public"."SaleItem" si
         INNER JOIN "public"."Sale" s ON si."saleId" = s.id
         INNER JOIN "public"."Product" p ON si."productId" = p.id
         WHERE s."tenantId" = $1 AND s.status = 'COMPLETED'
-        GROUP BY si."productId", p.name, p.sku
+        GROUP BY si."productId", p.name, p.sku, si.quantity
         ORDER BY totalSold DESC
         LIMIT 5
       `, tenantId)
-      console.log('[Dashboard] Top products raw:', JSON.stringify(topProductsRaw))
       
       topProducts = topProductsRaw.map((p: any) => ({
         id: p.productId,
         productId: p.productId,
         name: p.name,
         sku: p.sku,
-        totalSold: Number(p.totalSold) || 0
+        totalSold: parseFloat(p.totalSold) || 0,
+        qtyText: p.qty_text,
+        qtyRaw: p.qty_raw
       }))
     } catch (err) {
       console.error('[Dashboard] Error getting top products:', err)

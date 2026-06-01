@@ -62,6 +62,7 @@ export default function DashboardPage() {
       if (res.ok) {
         const data = await res.json()
         console.log('[Dashboard] Response:', JSON.stringify(data))
+        console.log('[Dashboard] topProducts:', JSON.stringify(data.data?.topProducts))
         setSummary(data.data || summary)
       }
     } catch (err) {
