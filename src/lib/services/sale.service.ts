@@ -115,8 +115,8 @@ export const saleService = {
 
         await tx.$executeRawUnsafe(
           `INSERT INTO "public"."InventoryMovement" 
-            ("tenantId", "warehouseId", "productId", "movementType", "quantity", "previousStock", "currentStock", "referenceType", "referenceId", "createdBy", "createdAt")
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
+            (id, "tenantId", "warehouseId", "productId", "movementType", "quantity", "previousStock", "currentStock", "referenceType", "referenceId", "createdBy", "createdAt")
+           VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
           params.tenantId,
           warehouse.id,
           item.productId,
