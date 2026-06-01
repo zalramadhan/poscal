@@ -61,8 +61,6 @@ export default function DashboardPage() {
       const res = await fetch('/api/v1/dashboard')
       if (res.ok) {
         const data = await res.json()
-        console.log('[Dashboard] Response:', JSON.stringify(data))
-        console.log('[Dashboard] topProducts:', JSON.stringify(data.data?.topProducts))
         setSummary(data.data || summary)
       }
     } catch (err) {
