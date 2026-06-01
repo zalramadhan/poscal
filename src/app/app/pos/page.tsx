@@ -92,8 +92,9 @@ export default function POSPage() {
         headers: { 'x-user-id': userId }
       })
       const data = await res.json()
-      if (data.data) {
-        setCurrentShift(data.data)
+      const shiftData = Array.isArray(data.data) ? data.data[0] : data.data
+      if (shiftData?.id) {
+        setCurrentShift(shiftData)
       } else {
         setShowStartShift(true)
       }
